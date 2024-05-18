@@ -1,0 +1,41 @@
+services:
+  speed-cube-time:
+    depends_on:
+      - roach
+    build:
+      context: .
+      dockerfile: cmd/server/Dockerfile
+    container_name: speed-cube-time-rest-server
+    hostname: speed-cube-time-rest-server
+    networks:
+      - localnet
+    ports:
+      - 80:8080
+    environment:
+      - PGUSER=${PGUSERNAME:-username}
+      - PGPASSWORD=${PGPASSWORD:?database password not set}
+      - PGHOST=${PGHOST:-db}
+      - PGPORT=${PGPORT:-26257}
+      - PGDATABASE=${PGDATABASE:-mydb}
+    deploy:
+      restart_policy:
+        condition: on-failure
+  roach:
+    image: cockroachdb/cockroach:latest-v23.2
+    container_name: roach
+    hostname: db
+    networks:
+      - localnet
+    ports:
+      - 26257:26257
+      - 8080:8080
+    volumes:
+      - roach:/cockroach/cockroach-data
+    command: start-single-node --insecure
+
+volumes:
+  roach:
+
+networks:
+  localnet:
+    driver: bridge
