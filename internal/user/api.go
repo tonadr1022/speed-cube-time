@@ -1,6 +1,7 @@
 package user
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -14,6 +15,8 @@ type resource struct {
 func RegisterHandlers(r *mux.Router, service Service) {
 	res := resource{service}
 	r.HandleFunc("/user/{id}", util.MakeHttpHandleFunc(res.get))
+	r.HandleFunc("/user", util.MakeHttpHandleFunc(res.create)).Methods("POST")
+	r.HandleFunc("/user", util.MakeHttpHandleFunc(res.query)).Methods("GET")
 }
 
 func (res resource) get(w http.ResponseWriter, r *http.Request) error {
@@ -24,4 +27,24 @@ func (res resource) get(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return util.WriteJson(w, http.StatusOK, userId)
+}
+
+func (res resource) query(w http.ResponseWriter, r *http.Request) error {
+	users, err := res.service.Query()
+	if err != nil {
+		return err
+	}
+	return util.WriteJson(w, http.StatusOK, users)
+}
+
+func (res resource) create(w http.ResponseWriter, r *http.Request) error {
+	req := &CreateUserRequest{}
+	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+		return err
+	}
+	response, err := res.service.Create(req)
+	if err != nil {
+		return err
+	}
+	return util.WriteJson(w, http.StatusOK, response)
 }
