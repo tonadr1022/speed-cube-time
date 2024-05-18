@@ -11,6 +11,7 @@ type Repository interface {
 	GetByUsername(username string) (*models.User, error)
 	Create(user *models.User) (*models.User, error)
 	Query() ([]*models.User, error)
+	Delete(id string) error
 }
 
 type repository struct {
@@ -22,34 +23,34 @@ func NewRepository(db *sql.DB) Repository {
 }
 
 func (r repository) Get(id string) (*models.User, error) {
-	query := `SELECT id, username, password, created_at FROM "user" WHERE id = $1`
+	query := `SELECT id, username, password, created_at FROM users WHERE id = $1`
 	user, err := r.getUserByQuery(query, id)
 	return user, err
 }
 
 func (r repository) Create(user *models.User) (*models.User, error) {
-	query := `INSERT INTO "user" (id, username, password, created_at) VALUES ($1, $2, $3, $4)`
+	query := `INSERT INTO users (id, username, password, created_at) VALUES ($1, $2, $3, $4)`
 	_, err := r.DB.Exec(query, user.ID, user.Username, user.Password, user.CreatedAt)
 	if err != nil {
 		return &models.User{}, err
 	}
 
 	// test for now
-	var us *models.User
-	us, err = r.GetByUsername(user.Username)
+	var get_user *models.User
+	get_user, err = r.GetByUsername(user.Username)
 	if err != nil {
 		return &models.User{}, err
 	}
-	return us, nil
+	return get_user, nil
 }
 
 func (r repository) GetByUsername(username string) (*models.User, error) {
-	query := `SELECT id, username, password, created_at FROM "user" WHERE username = $1`
+	query := `SELECT id, username, password, created_at FROM users WHERE username = $1`
 	return r.getUserByQuery(query, username)
 }
 
 func (r repository) Query() ([]*models.User, error) {
-	query := `SELECT id, username, password, created_at FROM "user"`
+	query := `SELECT id, username, password, created_at FROM users`
 	rows, err := r.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -64,6 +65,12 @@ func (r repository) Query() ([]*models.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (r repository) Delete(id string) error {
+	query := `DELETE FROM users WHERE id = $1`
+	_, err := r.DB.Exec(query, id)
+	return err
 }
 
 func (r repository) getUserByQuery(query string, thing string) (*models.User, error) {

@@ -8,15 +8,20 @@ services:
     container_name: speed-cube-time-rest-server
     hostname: speed-cube-time-rest-server
     networks:
-      - localnet
+      localnet:
+        aliases:
+          - db
     ports:
       - 80:8080
     environment:
-      - PGUSER=${PGUSERNAME:-username}
-      - PGPASSWORD=${PGPASSWORD:?database password not set}
-      - PGHOST=${PGHOST:-db}
-      - PGPORT=${PGPORT:-26257}
-      - PGDATABASE=${PGDATABASE:-mydb}
+      - APP_DSN=cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable
+      - APP_ENV=local
+      - PGHOST=db
+      - PGPORT=26257
+      - PGUSER=username
+      - PGPASSWORD=roach
+      - PGDATABASE=speed_cube_time
+
     deploy:
       restart_policy:
         condition: on-failure
@@ -26,6 +31,9 @@ services:
     hostname: db
     networks:
       - localnet
+    expose:
+      - 8080
+      - 26257
     ports:
       - 26257:26257
       - 8080:8080
@@ -33,6 +41,25 @@ services:
       - roach:/cockroach/cockroach-data
     command: start-single-node --insecure
 
+  migrate:
+    image: migrate/migrate
+    container_name: migrate
+    networks:
+      - localnet
+    volumes:
+      - ./migrations:/migrations
+    command:
+      [
+        "-path",
+        "/migrations",
+        "-database",
+        "cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable",
+        "up",
+      ]
+    links:
+      - roach
+    depends_on:
+      - roach
 volumes:
   roach:
 

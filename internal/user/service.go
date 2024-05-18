@@ -82,5 +82,8 @@ func (s service) Query() ([]*User, error) {
 	for _, user := range users {
 		ret = append(ret, &User{user})
 	}
+	if len(ret) == 0 {
+		ret = []*User{}
+	}
 	return ret, nil
 }
