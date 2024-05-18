@@ -21,7 +21,7 @@ type CreateUserRequest struct {
 func (s *UserService) CreateUser(m CreateUserRequest) (string, error) {
 	user_id := uuid.NewString()
 	query := "INSERT INTO users (id,username,password,created_at) VALUES (? ? ? ?)"
-	created_at := time.Now()
+	created_at := time.Now().UTC()
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(m.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", err
