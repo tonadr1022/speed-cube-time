@@ -4,7 +4,9 @@ services:
       - roach
     build:
       context: .
-      dockerfile: cmd/server/Dockerfile
+      dockerfile: cmd/server/Dockerfile.dev
+    volumes:
+      - .:/opt/app/api
     container_name: speed-cube-time-rest-server
     hostname: speed-cube-time-rest-server
     networks:
@@ -15,12 +17,14 @@ services:
       - 80:8080
     environment:
       - APP_DSN=cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable
-      - APP_ENV=local
       - PGHOST=db
       - PGPORT=26257
       - PGUSER=username
       - PGPASSWORD=roach
       - PGDATABASE=speed_cube_time
+      - HTTP_PORT=8080
+      - JWT_SECRET=Dn84hN+gnUHaBY1ZPFvlr8EKu3pZEhfYtMMo7xUkdO0=
+      - TOKEN_EXPIRATION_MINUTES=4320
 
     deploy:
       restart_policy:
@@ -40,26 +44,32 @@ services:
     volumes:
       - roach:/cockroach/cockroach-data
     command: start-single-node --insecure
-
-  migrate:
-    image: migrate/migrate
+  migrate: &basemigrate
     container_name: migrate
+    profiles: ["tools"]
     networks:
       - localnet
-    volumes:
-      - ./migrations:/migrations
-    command:
+    image: migrate/migrate
+    entrypoint:
       [
+        "migrate",
         "-path",
         "/migrations",
         "-database",
         "cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable",
-        "up",
       ]
+    command: up
     links:
       - roach
-    depends_on:
-      - roach
+    volumes:
+      - ./migrations:/migrations
+  migrate-create:
+    <<: *basemigrate
+    entrypoint: migrate create -dir /migrations -ext sql
+    command: ""
+  database-reset:
+    <<: *basemigrate
+    command: ["drop", "-f"]
 volumes:
   roach:
 

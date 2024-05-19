@@ -7,12 +7,11 @@ import (
 
 	"github.com/cenkalti/backoff"
 	_ "github.com/cockroachdb/cockroach-go/v2/crdb"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // initializes the database connection and creates tables if not initialized
-func InitDB(dsn string) (*sql.DB, error) {
-	fmt.Println("DSN: " + dsn)
+func InitCockroaachDB() (*sql.DB, error) {
 	var (
 		db  *sql.DB
 		err error
@@ -31,9 +30,6 @@ func InitDB(dsn string) (*sql.DB, error) {
 		return err
 	}
 
-	// if err = openDB(); err != nil {
-	// 	return nil, err
-	// }
 	// open the connection, retry retires it, especially useful when
 	// docker compose starts the server before the DB is ready for connections
 	err = backoff.Retry(openDB, backoff.NewExponentialBackOff())
@@ -41,35 +37,21 @@ func InitDB(dsn string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// _, err = db.Exec(`
-	//    CREATE TABLE IF NOT EXISTS "user" (
-	//        id TEXT PRIMARY KEY,
-	//        username VARCHAR(255) UNIQUE NOT NULL,
-	//        password VARCHAR(255) NOT NULL,
-	//        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-	//    );
-	//    `)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// _, err = db.Exec(`
-	//    CREATE TABLE IF NOT EXISTS sessions (
-	//        id TEXT PRIMARY KEY,
-	//        name VARCHAR(255) NOT NULL,
-	//        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	//        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	//        user_id TEXT,
-	//        FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE
-	//    );
-	// `)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
 
 	return db, nil
+}
+
+func TransformError(err error) error {
+	if err == nil {
+		return nil
+	}
+	if dbErr, ok := err.(*pq.Error); ok {
+		if dbErr.Code == "23505" {
+			return ErrDBRowUniqueConstraint
+		}
+	}
+	return err
 }

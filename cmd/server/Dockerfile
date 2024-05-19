@@ -1,4 +1,4 @@
-FROM golang:alpine AS build-stage
+FROM golang:alpine AS built
 RUN apk update && \
     apk add curl \
     git \
@@ -23,28 +23,44 @@ RUN tar -xzf /tmp/migrate.linux-amd64.tar.gz -C /usr/local/bin
 
 # build 
 COPY . .
-RUN make build
+ENV CGO_ENABLED=0
+RUN go build -o /tmp/server ./cmd/server/*.go
 
 # run tests in the container 
 # FROM build-stage AS run-test-stage
 # RUN go test -v ./...
 
-# deploy binary into a lean image 
-# FROM gcr.io/distroless/base-debian12 AS build-release-stage 
+# deploy binary into lean image
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates bash
 WORKDIR /app
 
 # copy the binary from build stage to the second image
-COPY --from=build-stage /usr/local/bin/migrate /usr/local/bin
-COPY --from=build-stage /app/migrations ./migrations/
-COPY --from=build-stage /app/server .
-COPY --from=build-stage /app/cmd/server/entrypoint.sh .
-COPY --from=build-stage /app/config/*.yaml ./config/
+COPY --from=built /usr/local/bin/migrate /usr/local/bin
+COPY --from=built /app/migrations ./migrations/
+COPY --from=built /tmp/server /usr/bin/server
+COPY --from=built /app/cmd/server/entrypoint.sh .
 
-
-EXPOSE 8080 
-
-# USER nonroot:nonroot
+EXPOSE 8080
 
 ENTRYPOINT ["/app/entrypoint.sh"]
+
+# # deploy binary into a lean image 
+# FROM alpine:latest
+# RUN apk --no-cache add ca-certificates bash
+# WORKDIR /app
+#
+# # copy the binary from build stage to the second image
+# COPY --from=build-stage /usr/local/bin/migrate /usr/local/bin
+# COPY --from=build-stage /app/migrations ./migrations/
+# COPY --from=build-stage /app/server .
+# COPY --from=build-stage /app/cmd/server/entrypoint.sh .
+
+
+# EXPOSE 8080 
+#
+#
+# ENTRYPOINT ["/app/entrypoint.sh"]
+
+
+
