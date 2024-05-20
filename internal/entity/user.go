@@ -30,6 +30,11 @@ type LoginUserPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=100"`
 }
 
+type UpdateUserPayload struct {
+	Username string `json:"username" validate:"omitempty,min=3,max=50"`
+	Password string `json:"password" validate:"omitempty,min=3,max=100"`
+}
+
 type RegisterUserPayload struct {
 	Username string `json:"username" validate:"required,min=3,max=50"`
 	Password string `json:"password" validate:"required,min=3,max=100"`

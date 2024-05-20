@@ -17,6 +17,8 @@ func RegisterHandlers(r *mux.Router, service Service) {
 	r.HandleFunc("/login", util.MakeHttpHandler(res.login)).Methods(http.MethodPost)
 	r.HandleFunc("/register", util.MakeHttpHandler(res.register)).Methods(http.MethodPost)
 	r.HandleFunc("/user", WithJWTAuth(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
+	r.HandleFunc("/user", WithJWTAuth(util.MakeHttpHandler(res.query))).Methods(http.MethodGet)
+	r.HandleFunc("/user", WithJWTAuth(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
 }
 
 type loginRequest struct {
@@ -35,6 +37,27 @@ func (res resource) delete(w http.ResponseWriter, r *http.Request) error {
 	return util.WriteJson(w, http.StatusNoContent, nil)
 }
 
+func (res resource) query(w http.ResponseWriter, r *http.Request) error {
+	users, err := res.service.Query()
+	if err != nil {
+		return err
+	}
+	return util.WriteJson(w, http.StatusOK, users)
+}
+
+func (res resource) update(w http.ResponseWriter, r *http.Request) error {
+	var user entity.UpdateUserPayload
+	isValid := util.ParseValidateWriteIfFailPayload(w, r, &user)
+	if !isValid {
+		return nil
+	}
+	err := res.service.Update(r.Context(), &user)
+	if err != nil {
+		return util.WriteApiError(w, http.StatusInternalServerError, "internal server error")
+	}
+	return util.WriteJson(w, http.StatusNoContent, nil)
+}
+
 func (res resource) register(w http.ResponseWriter, r *http.Request) error {
 	var user entity.RegisterUserPayload
 	isValid := util.ParseValidateWriteIfFailPayload(w, r, &user)
@@ -46,7 +69,7 @@ func (res resource) register(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	return util.WriteJson(w, http.StatusOK, response)
+	return util.WriteJson(w, http.StatusCreated, response)
 }
 
 func (res resource) login(w http.ResponseWriter, r *http.Request) error {

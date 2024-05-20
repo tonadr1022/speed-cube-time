@@ -15,6 +15,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func NewService(jwtSigningKey string, jwtTokenExpirationMinutes int, repository Repository) Service {
+	return service{jwtSigningKey, jwtTokenExpirationMinutes, repository}
+}
+
 type LoginResponse struct {
 	Token string `json:"token"`
 }
@@ -22,6 +26,8 @@ type LoginResponse struct {
 type Service interface {
 	Login(p *entity.LoginUserPayload) (LoginResponse, error)
 	Register(req *entity.RegisterUserPayload) (LoginResponse, error)
+	Query() ([]*entity.User, error)
+	Update(ctx context.Context, req *entity.UpdateUserPayload) error
 	DeleteUser(ctx context.Context) error
 }
 
@@ -51,17 +57,8 @@ func (s service) Login(payload *entity.LoginUserPayload) (LoginResponse, error) 
 	return LoginResponse{tokenString}, err
 }
 
-func (s service) DeleteUser(ctx context.Context) error {
-	user := CurrentUser(ctx)
-	if user == nil {
-		// should never happen since this is only called with auth
-		return fmt.Errorf("internal server error")
-	}
-	return s.repo.Delete(user.GetID())
-}
-
 func (s service) Register(req *entity.RegisterUserPayload) (LoginResponse, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	hashedPassword, err := s.hashPassword(req.Password)
 	if err != nil {
 		return LoginResponse{}, err
 	}
@@ -92,12 +89,39 @@ func (s service) Register(req *entity.RegisterUserPayload) (LoginResponse, error
 	return res, err
 }
 
-func NewService(jwtSigningKey string, jwtTokenExpirationMinutes int, repository Repository) Service {
-	return service{jwtSigningKey, jwtTokenExpirationMinutes, repository}
+func (s service) Query() ([]*entity.User, error) {
+	users, err := s.repo.Query()
+	var ret []*entity.User
+	if err != nil {
+		return ret, err
+	}
+	ret = append(ret, users...)
+
+	if len(ret) == 0 {
+		ret = []*entity.User{}
+	}
+	return ret, nil
+}
+
+func (s service) Update(ctx context.Context, req *entity.UpdateUserPayload) error {
+	hashedPassword, err := s.hashPassword(req.Password)
+	if err != nil {
+		return err
+	}
+	return s.repo.Update(&entity.User{Username: req.Username, Password: string(hashedPassword)})
+}
+
+func (s service) DeleteUser(ctx context.Context) error {
+	user := CurrentUser(ctx)
+	if user == nil {
+		// should never happen since this is only called with auth
+		return fmt.Errorf("internal server error")
+	}
+	return s.repo.Delete(user.GetID())
 }
 
 func (s service) authenticate(username string, password string) (Identity, error) {
-	user, err := s.repo.GetByUsername(username)
+	user, err := s.repo.GetOneByUsername(username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -122,4 +146,8 @@ func (s service) generateJWT(identity Identity) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func (s service) hashPassword(password string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }

@@ -8,9 +8,9 @@ import (
 )
 
 type Repository interface {
-	GetByUsername(username string) (*entity.User, error)
 	Get(id string) (*entity.User, error)
 	GetOneByUsername(username string) (*entity.User, error)
+	Update(user *entity.User) error
 	Create(user *entity.User) error
 	Query() ([]*entity.User, error)
 	Delete(id string) error
@@ -30,19 +30,22 @@ func NewRepository(db *sql.DB) Repository {
 	return repository{db}
 }
 
-func (r repository) GetByUsername(username string) (*entity.User, error) {
-	query := `SELECT id, username, password, created_at FROM users WHERE username = $1`
-	return r.getUserByQuery(query, username)
+func (r repository) Update(user *entity.User) error {
+	_, err := r.DB.Exec("UPDATE users SET username = $1, password = $2", user.Username, user.Password)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r repository) GetOneByUsername(username string) (*entity.User, error) {
-	row := r.DB.QueryRow("SELECT 1 FROM users where username = $1", username)
+	row := r.DB.QueryRow("SELECT id, username, password, created_at FROM users WHERE username = $1 LIMIT 1", username)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
 	user, err := scanIntoUser(row)
 	if err != nil {
-		return nil, err
+		return &entity.User{}, err
 	}
 	return user, nil
 }
