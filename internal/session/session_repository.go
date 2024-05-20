@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/tonadr1022/speed-cube-time/internal/db"
@@ -8,11 +9,12 @@ import (
 )
 
 type Repository interface {
-	Get(id string) (*entity.Session, error)
-	Update(session *entity.Session) error
-	Create(userId string, session *entity.Session) error
-	// Query() ([]*entity.Session, error)
-	Delete(id string) error
+	Get(ctx context.Context, d string) (*entity.Session, error)
+	GetByName(ctx context.Context, name string) (*entity.Session, error)
+	Update(ctx context.Context, session *entity.Session) error
+	Create(ctx context.Context, userId string, session *entity.Session) error
+	Query(ctx context.Context, userId string) ([]*entity.Session, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type repository struct {
@@ -23,15 +25,30 @@ func NewRepository(db *sql.DB) Repository {
 	return repository{db}
 }
 
-func (r repository) Update(session *entity.Session) error {
-	_, err := r.DB.Exec("UPDATE users SET name = $1 ", session.Name)
+func (r repository) Query(ctx context.Context, userId string) ([]*entity.Session, error) {
+	query := `SELECT id, name, cube_type, created_at, updated_at FROM sessions where user_id = $1`
+	rows, err := r.DB.Query(query, userId)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	sessions := []*entity.Session{}
+	for rows.Next() {
+		session, err := r.scanIntoSession(rows)
+		if err != nil {
+			return nil, err
+		}
+		sessions = append(sessions, session)
+	}
+	return sessions, nil
 }
 
-func (r repository) Delete(id string) error {
+func (r repository) Update(ctx context.Context, s *entity.Session) error {
+	query := "UPDATE sessions SET name = $1, cube_type = $2, updated_at = $3"
+	_, err := r.DB.Exec(query, s.Name, s.CubeType, s.UpdatedAt)
+	return err
+}
+
+func (r repository) Delete(ctx context.Context, id string) error {
 	query := `DELETE FROM sessions WHERE id = $1`
 	result, err := r.DB.Exec(query, id)
 	if err != nil {
@@ -47,9 +64,18 @@ func (r repository) Delete(id string) error {
 	return nil
 }
 
-func (r repository) Get(id string) (*entity.Session, error) {
-	query := `SELECT id, name, created_at, updated_at FROM sessions WHERE id = $1`
-	rows, err := r.DB.Query(query, id)
+func (r repository) GetByName(ctx context.Context, name string) (*entity.Session, error) {
+	query := `SELECT id, name, cube_type, created_at, updated_at FROM sessions WHERE name = $1`
+	return r.getByQuery(query, name)
+}
+
+func (r repository) Get(ctx context.Context, id string) (*entity.Session, error) {
+	query := `SELECT id, name, cube_type, created_at, updated_at FROM sessions WHERE id = $1`
+	return r.getByQuery(query, id)
+}
+
+func (r repository) getByQuery(query string, thing string) (*entity.Session, error) {
+	rows, err := r.DB.Query(query, thing)
 	if err != nil {
 		return nil, err
 	}
@@ -57,16 +83,13 @@ func (r repository) Get(id string) (*entity.Session, error) {
 	for rows.Next() {
 		return r.scanIntoSession(rows)
 	}
-	return nil, sql.ErrNoRows
+	return nil, ErrSessionNotFound
 }
 
-func (r repository) Create(userId string, s *entity.Session) error {
-	query := "INSERT INTO sessions (id, name, user_id) VALUES ($1, $2, $3)"
-	_, err := r.DB.Exec(query, s.ID, s.Name, userId)
-	if err != nil {
-		return err
-	}
-	return nil
+func (r repository) Create(ctx context.Context, userId string, s *entity.Session) error {
+	query := "INSERT INTO sessions (id, name, cube_type, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)"
+	_, err := r.DB.Exec(query, s.ID, s.Name, s.CubeType, userId, s.CreatedAt, s.UpdatedAt)
+	return err
 }
 
 func (r repository) scanIntoSession(scanner db.Scanner) (*entity.Session, error) {
@@ -74,6 +97,7 @@ func (r repository) scanIntoSession(scanner db.Scanner) (*entity.Session, error)
 	err := scanner.Scan(
 		&session.ID,
 		&session.Name,
+		&session.CubeType,
 		&session.CreatedAt,
 		&session.UpdatedAt,
 	)

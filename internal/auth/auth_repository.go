@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/tonadr1022/speed-cube-time/internal/db"
@@ -8,21 +9,21 @@ import (
 )
 
 type Repository interface {
-	Get(id string) (*entity.User, error)
-	GetOneByUsername(username string) (*entity.User, error)
-	Update(user *entity.User) error
-	Create(user *entity.User) error
-	Query() ([]*entity.User, error)
-	Delete(id string) error
+	Get(ctx context.Context, id string) (*entity.User, error)
+	GetOneByUsername(ctx context.Context, username string) (*entity.User, error)
+	Update(ctx context.Context, user *entity.User) error
+	Create(ctx context.Context, user *entity.User) error
+	Query(ctx context.Context) ([]*entity.User, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type repository struct {
 	DB *sql.DB
 }
 
-func (r repository) Get(id string) (*entity.User, error) {
+func (r repository) Get(ctx context.Context, id string) (*entity.User, error) {
 	query := `SELECT id, username, password, created_at FROM users WHERE id = $1`
-	user, err := r.getUserByQuery(query, id)
+	user, err := r.getUserByQuery(ctx, query, id)
 	return user, err
 }
 
@@ -30,7 +31,7 @@ func NewRepository(db *sql.DB) Repository {
 	return repository{db}
 }
 
-func (r repository) Update(user *entity.User) error {
+func (r repository) Update(ctx context.Context, user *entity.User) error {
 	_, err := r.DB.Exec("UPDATE users SET username = $1, password = $2", user.Username, user.Password)
 	if err != nil {
 		return err
@@ -38,7 +39,7 @@ func (r repository) Update(user *entity.User) error {
 	return nil
 }
 
-func (r repository) GetOneByUsername(username string) (*entity.User, error) {
+func (r repository) GetOneByUsername(ctx context.Context, username string) (*entity.User, error) {
 	row := r.DB.QueryRow("SELECT id, username, password, created_at FROM users WHERE username = $1 LIMIT 1", username)
 	if row.Err() != nil {
 		return nil, row.Err()
@@ -50,7 +51,7 @@ func (r repository) GetOneByUsername(username string) (*entity.User, error) {
 	return user, nil
 }
 
-func (r repository) getUserByQuery(query string, thing string) (*entity.User, error) {
+func (r repository) getUserByQuery(ctx context.Context, query string, thing string) (*entity.User, error) {
 	rows, err := r.DB.Query(query, thing)
 	if err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func (r repository) getUserByQuery(query string, thing string) (*entity.User, er
 	return nil, sql.ErrNoRows
 }
 
-func (r repository) Create(user *entity.User) error {
+func (r repository) Create(ctx context.Context, user *entity.User) error {
 	query := `INSERT INTO users (id, username, password, created_at) VALUES ($1, $2, $3, $4)`
 	_, err := r.DB.Exec(query, user.ID, user.Username, user.Password, user.CreatedAt)
 	if err != nil {
@@ -71,7 +72,7 @@ func (r repository) Create(user *entity.User) error {
 	return nil
 }
 
-func (r repository) Query() ([]*entity.User, error) {
+func (r repository) Query(ctx context.Context) ([]*entity.User, error) {
 	query := `SELECT id, username, password, created_at FROM users`
 	rows, err := r.DB.Query(query)
 	if err != nil {
@@ -89,7 +90,7 @@ func (r repository) Query() ([]*entity.User, error) {
 	return users, nil
 }
 
-func (r repository) Delete(id string) error {
+func (r repository) Delete(ctx context.Context, id string) error {
 	query := `DELETE FROM users WHERE id = $1`
 	result, err := r.DB.Exec(query, id)
 	if err != nil {

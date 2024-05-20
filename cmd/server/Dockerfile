@@ -45,22 +45,3 @@ EXPOSE 8080
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# # deploy binary into a lean image 
-# FROM alpine:latest
-# RUN apk --no-cache add ca-certificates bash
-# WORKDIR /app
-#
-# # copy the binary from build stage to the second image
-# COPY --from=build-stage /usr/local/bin/migrate /usr/local/bin
-# COPY --from=build-stage /app/migrations ./migrations/
-# COPY --from=build-stage /app/server .
-# COPY --from=build-stage /app/cmd/server/entrypoint.sh .
-
-
-# EXPOSE 8080 
-#
-#
-# ENTRYPOINT ["/app/entrypoint.sh"]
-
-
-

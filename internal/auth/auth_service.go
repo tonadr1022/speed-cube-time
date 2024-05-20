@@ -10,7 +10,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/tonadr1022/speed-cube-time/internal/db"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -24,9 +23,9 @@ type LoginResponse struct {
 }
 
 type Service interface {
-	Login(p *entity.LoginUserPayload) (LoginResponse, error)
-	Register(req *entity.RegisterUserPayload) (LoginResponse, error)
-	Query() ([]*entity.User, error)
+	Login(ctx context.Context, p *entity.LoginUserPayload) (LoginResponse, error)
+	Register(ctx context.Context, req *entity.RegisterUserPayload) (LoginResponse, error)
+	Query(ctx context.Context) ([]*entity.User, error)
 	Update(ctx context.Context, req *entity.UpdateUserPayload) error
 	DeleteUser(ctx context.Context) error
 }
@@ -46,10 +45,11 @@ type service struct {
 type Identity interface {
 	GetID() string
 	GetUsername() string
+	GetActiveCubeSessionId() string
 }
 
-func (s service) Login(payload *entity.LoginUserPayload) (LoginResponse, error) {
-	identity, err := s.authenticate(payload.Username, payload.Password)
+func (s service) Login(ctx context.Context, payload *entity.LoginUserPayload) (LoginResponse, error) {
+	identity, err := s.authenticate(ctx, payload.Username, payload.Password)
 	if err != nil {
 		return LoginResponse{}, err
 	}
@@ -57,40 +57,42 @@ func (s service) Login(payload *entity.LoginUserPayload) (LoginResponse, error) 
 	return LoginResponse{tokenString}, err
 }
 
-func (s service) Register(req *entity.RegisterUserPayload) (LoginResponse, error) {
+func (s service) get(ctx context.Context, userId string) (*entity.User, error) {
+	return s.repo.Get(ctx, userId)
+}
+
+func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) (LoginResponse, error) {
 	hashedPassword, err := s.hashPassword(req.Password)
 	if err != nil {
 		return LoginResponse{}, err
 	}
 
 	// check if user exists
-	_, err = s.repo.GetOneByUsername(req.Username)
+	_, err = s.repo.GetOneByUsername(ctx, req.Username)
 	if err == nil {
 		return LoginResponse{}, ErrUserExists
 	}
 
 	// create the user
+	timeNow := time.Now().UTC()
 	user := &entity.User{
 		ID:        uuid.NewString(),
 		Username:  req.Username,
 		Password:  string(hashedPassword),
-		CreatedAt: time.Now().UTC(),
+		CreatedAt: timeNow,
 	}
-	err = s.repo.Create(user)
+	err = s.repo.Create(ctx, user)
 	if err != nil {
-		if errors.Is(err, db.ErrDBRowUniqueConstraint) {
-			return LoginResponse{}, ErrUserExists
-		}
 		return LoginResponse{}, err
 	}
 
 	// login the user
-	res, err := s.Login(&entity.LoginUserPayload{Username: req.Username, Password: req.Password})
+	res, err := s.Login(ctx, &entity.LoginUserPayload{Username: req.Username, Password: req.Password})
 	return res, err
 }
 
-func (s service) Query() ([]*entity.User, error) {
-	users, err := s.repo.Query()
+func (s service) Query(ctx context.Context) ([]*entity.User, error) {
+	users, err := s.repo.Query(ctx)
 	var ret []*entity.User
 	if err != nil {
 		return ret, err
@@ -104,11 +106,26 @@ func (s service) Query() ([]*entity.User, error) {
 }
 
 func (s service) Update(ctx context.Context, req *entity.UpdateUserPayload) error {
-	hashedPassword, err := s.hashPassword(req.Password)
+	user, err := s.get(ctx, CurrentUser(ctx).GetID())
 	if err != nil {
 		return err
 	}
-	return s.repo.Update(&entity.User{Username: req.Username, Password: string(hashedPassword)})
+
+	if req.Password != "" {
+		hashedPassword, err := s.hashPassword(req.Password)
+		if err != nil {
+			return err
+		}
+		user.Password = string(hashedPassword)
+	}
+	if req.ActiveCubeSessionId != "" {
+		user.ActiveCubeSessionId = req.ActiveCubeSessionId
+	}
+
+	if err != nil {
+		return err
+	}
+	return s.repo.Update(ctx, user)
 }
 
 func (s service) DeleteUser(ctx context.Context) error {
@@ -117,11 +134,11 @@ func (s service) DeleteUser(ctx context.Context) error {
 		// should never happen since this is only called with auth
 		return fmt.Errorf("internal server error")
 	}
-	return s.repo.Delete(user.GetID())
+	return s.repo.Delete(ctx, user.GetID())
 }
 
-func (s service) authenticate(username string, password string) (Identity, error) {
-	user, err := s.repo.GetOneByUsername(username)
+func (s service) authenticate(ctx context.Context, username string, password string) (Identity, error) {
+	user, err := s.repo.GetOneByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -136,10 +153,12 @@ func (s service) authenticate(username string, password string) (Identity, error
 
 func (s service) generateJWT(identity Identity) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
+	fmt.Printf("acc %v\n", identity.GetActiveCubeSessionId())
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       identity.GetID(),
-		"username": identity.GetUsername(),
-		"exp":      time.Now().Add(time.Duration(s.jwtTokenExpirationMinutes * int(time.Minute))).Unix(),
+		"id":                identity.GetID(),
+		"username":          identity.GetUsername(),
+		"active_session_id": identity.GetActiveCubeSessionId(),
+		"exp":               time.Now().Add(time.Duration(s.jwtTokenExpirationMinutes * int(time.Minute))).Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {

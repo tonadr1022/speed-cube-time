@@ -38,7 +38,7 @@ func (res resource) delete(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (res resource) query(w http.ResponseWriter, r *http.Request) error {
-	users, err := res.service.Query()
+	users, err := res.service.Query(r.Context())
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (res resource) register(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 
-	response, err := res.service.Register(&user)
+	response, err := res.service.Register(r.Context(), &user)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (res resource) login(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 
-	loginResponse, err := res.service.Login(&user)
+	loginResponse, err := res.service.Login(r.Context(), &user)
 	if err != nil {
 		return err
 	}
