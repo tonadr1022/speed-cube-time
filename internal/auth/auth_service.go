@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -14,18 +15,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type RegisterUserRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
 type LoginResponse struct {
 	Token string `json:"token"`
 }
 
 type Service interface {
-	Login(username string, password string) (LoginResponse, error)
-	Register(req *RegisterUserRequest) (LoginResponse, error)
+	Login(p *entity.LoginUserPayload) (LoginResponse, error)
+	Register(req *entity.RegisterUserPayload) (LoginResponse, error)
 	DeleteUser(ctx context.Context) error
 }
 
@@ -46,14 +42,11 @@ type Identity interface {
 	GetUsername() string
 }
 
-func (s service) Login(username string, password string) (LoginResponse, error) {
-	identity, err := s.authenticate(username, password)
+func (s service) Login(payload *entity.LoginUserPayload) (LoginResponse, error) {
+	identity, err := s.authenticate(payload.Username, payload.Password)
 	if err != nil {
 		return LoginResponse{}, err
 	}
-	// if identity == nil {
-	// 	return LoginResponse{}, nil
-	// }
 	tokenString, err := s.generateJWT(identity)
 	return LoginResponse{tokenString}, err
 }
@@ -61,22 +54,25 @@ func (s service) Login(username string, password string) (LoginResponse, error) 
 func (s service) DeleteUser(ctx context.Context) error {
 	user := CurrentUser(ctx)
 	if user == nil {
-		fmt.Println("delete user")
-		return nil
+		// should never happen since this is only called with auth
+		return fmt.Errorf("internal server error")
 	}
-	err := s.repo.Delete(user.GetID())
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.repo.Delete(user.GetID())
 }
 
-func (s service) Register(req *RegisterUserRequest) (LoginResponse, error) {
+func (s service) Register(req *entity.RegisterUserPayload) (LoginResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return LoginResponse{}, err
 	}
 
+	// check if user exists
+	_, err = s.repo.GetOneByUsername(req.Username)
+	if err == nil {
+		return LoginResponse{}, ErrUserExists
+	}
+
+	// create the user
 	user := &entity.User{
 		ID:        uuid.NewString(),
 		Username:  req.Username,
@@ -91,7 +87,8 @@ func (s service) Register(req *RegisterUserRequest) (LoginResponse, error) {
 		return LoginResponse{}, err
 	}
 
-	res, err := s.Login(user.Username, req.Password)
+	// login the user
+	res, err := s.Login(&entity.LoginUserPayload{Username: req.Username, Password: req.Password})
 	return res, err
 }
 
@@ -102,6 +99,9 @@ func NewService(jwtSigningKey string, jwtTokenExpirationMinutes int, repository 
 func (s service) authenticate(username string, password string) (Identity, error) {
 	user, err := s.repo.GetByUsername(username)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
 		return nil, err
 	}
 	if !user.ValidPassword(password) {
@@ -115,7 +115,7 @@ func (s service) generateJWT(identity Identity) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       identity.GetID(),
 		"username": identity.GetUsername(),
-		"exp":      time.Now().Add(time.Duration(s.jwtTokenExpirationMinutes)).Unix(),
+		"exp":      time.Now().Add(time.Duration(s.jwtTokenExpirationMinutes * int(time.Minute))).Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {

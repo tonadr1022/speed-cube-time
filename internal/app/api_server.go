@@ -23,11 +23,16 @@ func NewAPIServer(router *mux.Router, db *sql.DB) *ApiServer {
 	return &ApiServer{router, db}
 }
 
-func (s *ApiServer) Initialize(jwtSigningKey string, jwtTokenExpirationMinutes int) {
-	h := http.HandlerFunc(notFound)
-	s.router.NotFoundHandler = h
+type ApiServerConfig struct {
+	JWTSigningKey             string
+	JWTTokenExpirationMinutes int
+}
+
+func (s *ApiServer) Initialize(config *ApiServerConfig) {
+	s.router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	s.router.MethodNotAllowedHandler = http.HandlerFunc(methodNotAllowdHandler)
 	user.RegisterHandlers(s.router, user.NewUserService(user.NewRepository(s.db)))
-	auth.RegisterHandlers(s.router, auth.NewService(jwtSigningKey, jwtTokenExpirationMinutes, auth.NewRepository(s.db)))
+	auth.RegisterHandlers(s.router, auth.NewService(config.JWTSigningKey, config.JWTTokenExpirationMinutes, auth.NewRepository(s.db)))
 	s.router.Use(mux.CORSMethodMiddleware(s.router))
 }
 
@@ -37,6 +42,10 @@ func (s *ApiServer) Run(httpPort string) {
 	log.Fatal(http.ListenAndServe(":"+httpPort, loggedHandler))
 }
 
-func notFound(w http.ResponseWriter, r *http.Request) {
+func methodNotAllowdHandler(w http.ResponseWriter, r *http.Request) {
+	util.WriteApiError(w, http.StatusMethodNotAllowed, "method not allowed")
+}
+
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	util.WriteJson(w, http.StatusNotFound, util.ApiError{Error: "not found"})
 }

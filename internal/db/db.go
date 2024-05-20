@@ -55,3 +55,7 @@ func TransformError(err error) error {
 	}
 	return err
 }
+
+type Scanner interface {
+	Scan(dest ...any) error
+}

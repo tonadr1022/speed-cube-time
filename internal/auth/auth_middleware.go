@@ -6,39 +6,57 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
 	"github.com/tonadr1022/speed-cube-time/internal/util"
 )
 
-func Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Calling JWT auth middleware")
-		tokenString := r.Header.Get("X-Session-Token")
+func WithJWTAuth(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		authString := r.Header.Get("Authorization")
+
+		// attempt to parse the token
+		if authString == "" {
+			util.WriteApiError(w, http.StatusUnauthorized, "unauthenticated")
+			return
+		}
+		strings := strings.Split(authString, "Bearer ")
+		if len(strings) != 2 {
+			util.WriteApiError(w, http.StatusUnauthorized, "malformed token")
+		}
+		tokenString := strings[1]
 		token, err := validateJWT(tokenString)
+
+		// handle the token result
 		switch {
+		case errors.Is(err, jwt.ErrTokenMalformed):
+			util.WriteApiError(w, http.StatusUnauthorized, "malformed token")
+		case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+			util.WriteApiError(w, http.StatusUnauthorized, "invalid signature")
+		case errors.Is(err, jwt.ErrTokenExpired):
+			util.WriteApiError(w, http.StatusUnauthorized, "token expired")
+		case errors.Is(err, jwt.ErrTokenNotValidYet):
+			util.WriteApiError(w, http.StatusUnauthorized, "token not valid yet")
 		case token.Valid:
 			// get the id and username from the token and attach to the context
 			claims := token.Claims.(jwt.MapClaims)
 			userID := claims["id"].(string)
 			username := claims["username"].(string)
+			if userID == "" || username == "" {
+				util.WriteApiError(w, http.StatusUnauthorized, "claims not found in token")
+			}
+			// attach context and call the next middleware or handler
 			ctx := withUser(r.Context(), userID, username)
 			r = r.WithContext(ctx)
-			// allow next
 			next.ServeHTTP(w, r)
-		case errors.Is(err, jwt.ErrTokenMalformed):
-			util.WriteJson(w, http.StatusForbidden, "malformed token")
-		case errors.Is(err, jwt.ErrTokenSignatureInvalid):
-			util.WriteJson(w, http.StatusForbidden, "invalid signature")
-		case errors.Is(err, jwt.ErrTokenExpired):
-			util.WriteJson(w, http.StatusForbidden, "token expired")
-		case errors.Is(err, jwt.ErrTokenNotValidYet):
-			util.WriteJson(w, http.StatusForbidden, "token not valid yet")
+			return
 		default:
-			util.WriteJson(w, http.StatusForbidden, "could not handle this token")
+			// should not occur generally
+			util.WriteApiError(w, http.StatusUnauthorized, "could not handle this token")
 		}
-	})
+	}
 }
 
 type contextKey int

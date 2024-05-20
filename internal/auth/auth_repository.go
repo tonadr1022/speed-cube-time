@@ -10,6 +10,7 @@ import (
 type Repository interface {
 	GetByUsername(username string) (*entity.User, error)
 	Get(id string) (*entity.User, error)
+	GetOneByUsername(username string) (*entity.User, error)
 	Create(user *entity.User) error
 	Query() ([]*entity.User, error)
 	Delete(id string) error
@@ -32,6 +33,18 @@ func NewRepository(db *sql.DB) Repository {
 func (r repository) GetByUsername(username string) (*entity.User, error) {
 	query := `SELECT id, username, password, created_at FROM users WHERE username = $1`
 	return r.getUserByQuery(query, username)
+}
+
+func (r repository) GetOneByUsername(username string) (*entity.User, error) {
+	row := r.DB.QueryRow("SELECT 1 FROM users where username = $1", username)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+	user, err := scanIntoUser(row)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (r repository) getUserByQuery(query string, thing string) (*entity.User, error) {
@@ -75,13 +88,23 @@ func (r repository) Query() ([]*entity.User, error) {
 
 func (r repository) Delete(id string) error {
 	query := `DELETE FROM users WHERE id = $1`
-	_, err := r.DB.Exec(query, id)
-	return err
+	result, err := r.DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return nil
 }
 
-func scanIntoUser(rows *sql.Rows) (*entity.User, error) {
+func scanIntoUser(scanner db.Scanner) (*entity.User, error) {
 	user := &entity.User{}
-	err := rows.Scan(
+	err := scanner.Scan(
 		&user.ID,
 		&user.Username,
 		&user.Password,

@@ -24,3 +24,13 @@ func (u User) ValidPassword(password string) bool {
 func (u User) GetUsername() string {
 	return u.Username
 }
+
+type LoginUserPayload struct {
+	Username string `json:"username" validate:"required,min=3,max=50"`
+	Password string `json:"password" validate:"required,min=3,max=100"`
+}
+
+type RegisterUserPayload struct {
+	Username string `json:"username" validate:"required,min=3,max=50"`
+	Password string `json:"password" validate:"required,min=3,max=100"`
+}

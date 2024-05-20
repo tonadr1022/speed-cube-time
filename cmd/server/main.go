@@ -20,11 +20,18 @@ func main() {
 	apiServer := app.NewAPIServer(router, db)
 
 	jwtSigningKey := os.Getenv("JWT_SECRET")
+	if jwtSigningKey == "" {
+		log.Fatalln("Could not find JWT_SECRET")
+	}
 	jwtTokenExpirationMinutes, err := strconv.Atoi(os.Getenv("TOKEN_EXPIRATION_MINUTES"))
 	if err != nil {
 		log.Fatalf("Could not parse or find TOKEN_EXPIRATION_MINUTES")
 	}
-	apiServer.Initialize(jwtSigningKey, jwtTokenExpirationMinutes)
+	apiServerConfig := &app.ApiServerConfig{
+		JWTSigningKey:             jwtSigningKey,
+		JWTTokenExpirationMinutes: jwtTokenExpirationMinutes,
+	}
+	apiServer.Initialize(apiServerConfig)
 
 	httpPort := os.Getenv("HTTP_PORT")
 	if httpPort == "" {
