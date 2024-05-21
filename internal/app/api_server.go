@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/tonadr1022/speed-cube-time/internal/auth"
 	"github.com/tonadr1022/speed-cube-time/internal/session"
+	"github.com/tonadr1022/speed-cube-time/internal/settings"
 	"github.com/tonadr1022/speed-cube-time/internal/util"
 )
 
@@ -31,8 +32,11 @@ type ApiServerConfig struct {
 func (s *ApiServer) Initialize(config *ApiServerConfig) {
 	s.router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 	s.router.MethodNotAllowedHandler = http.HandlerFunc(methodNotAllowdHandler)
-	auth.RegisterHandlers(s.router, auth.NewService(config.JWTSigningKey, config.JWTTokenExpirationMinutes, auth.NewRepository(s.db)))
+	settingsRepo := settings.NewRepository(s.db)
+	sessionsRepo := session.NewRepository(s.db)
+	auth.RegisterHandlers(s.router, auth.NewService(config.JWTSigningKey, config.JWTTokenExpirationMinutes, auth.NewRepository(s.db), settingsRepo, sessionsRepo))
 	session.RegisterHandlers(s.router, session.NewService(session.NewRepository(s.db)))
+	settings.RegisterHandlers(s.router, settings.NewService(settings.NewRepository(s.db)))
 	s.router.Use(mux.CORSMethodMiddleware(s.router))
 }
 

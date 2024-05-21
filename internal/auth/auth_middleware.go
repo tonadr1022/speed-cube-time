@@ -44,13 +44,12 @@ func WithJWTAuth(next http.HandlerFunc) http.HandlerFunc {
 			claims := token.Claims.(jwt.MapClaims)
 			userID := claims["id"].(string)
 			username := claims["username"].(string)
-			activeSessionId := claims["active_session_id"].(string)
 			if userID == "" || username == "" {
 				util.WriteApiError(w, http.StatusUnauthorized, "claims not found in token")
 				return
 			}
 			// attach context and call the next middleware or handler
-			ctx := withUser(r.Context(), userID, username, activeSessionId)
+			ctx := withUser(r.Context(), userID, username)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 			return
@@ -66,8 +65,8 @@ type contextKey int
 const userKey contextKey = iota
 
 // returns a context that contains the user identity
-func withUser(ctx context.Context, id string, username string, activeSessionId string) context.Context {
-	return context.WithValue(ctx, userKey, entity.User{ID: id, Username: username, ActiveCubeSessionId: activeSessionId})
+func withUser(ctx context.Context, id string, username string) context.Context {
+	return context.WithValue(ctx, userKey, entity.User{ID: id, Username: username})
 }
 
 // returns the user identity from the given context, otherwise nil if not found

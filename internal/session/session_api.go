@@ -35,7 +35,7 @@ func (res resource) delete(w http.ResponseWriter, r *http.Request) error {
 	err := res.service.Delete(r.Context(), id)
 	if err != nil {
 		if err == ErrSessionNotFound {
-			return util.WriteApiError(w, http.StatusNotFound, "session not found")
+			return util.WriteApiError(w, http.StatusNotFound, ErrSessionNotFound.Error())
 		}
 		return util.WriteApiError(w, http.StatusInternalServerError, err.Error())
 	}

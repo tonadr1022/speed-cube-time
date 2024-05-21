@@ -50,7 +50,7 @@ func (s service) Create(ctx context.Context, req *entity.CreateSolvePayload) (*e
 		UpdatedAt: timeNow,
 	}
 	sessionId := "active session Id of user"
-	s.repo.Create(ctx, user.GetID(), user.GetActiveCubeSessionId(), solve)
+	s.repo.Create(ctx, user.GetID(), sessionId, solve)
 
 	return nil, nil
 }

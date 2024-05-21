@@ -7,11 +7,10 @@ import (
 )
 
 type User struct {
-	ID                  string    `json:"user_id"`
-	Username            string    `json:"username"`
-	ActiveCubeSessionId string    `json:"active_session_id"`
-	Password            string    `json:"password"`
-	CreatedAt           time.Time `json:"created_at"`
+	ID        string    `json:"id"`
+	Username  string    `json:"username"`
+	Password  string    `json:"password"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (u User) GetID() string {
@@ -24,10 +23,6 @@ func (u User) ValidPassword(password string) bool {
 
 func (u User) GetUsername() string {
 	return u.Username
-}
-
-func (u User) GetActiveCubeSessionId() string {
-	return u.ActiveCubeSessionId
 }
 
 type LoginUserPayload struct {

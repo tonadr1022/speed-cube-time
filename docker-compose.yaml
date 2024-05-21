@@ -23,6 +23,10 @@ services:
       - PGPASSWORD=roach
       - PGDATABASE=speed_cube_time
       - HTTP_PORT=8080
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redispassword
+      - REDIS_URL=redis://user:password@cache:6379/0?protocol=3
       - JWT_SECRET=Dn84hN+gnUHaBY1ZPFvlr8EKu3pZEhfYtMMo7xUkdO0=
       - TOKEN_EXPIRATION_MINUTES=4320
 
@@ -44,6 +48,20 @@ services:
     volumes:
       - roach:/cockroach/cockroach-data
     command: start-single-node --insecure
+  # cache:
+  #   # platform: linux/arm64/v8
+  #   image: redis:latest
+  #   restart: always
+  #   # container_name: redis
+  #   # command:
+  #   #   - redis-server --save 20 1 --loglevel warning
+  #
+  #   networks:
+  #     - localnet
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - cache:/data
   migrate: &basemigrate
     container_name: migrate
     profiles: ["tools"]
@@ -72,6 +90,7 @@ services:
     command: ["drop", "-f"]
 volumes:
   roach:
+  # cache:
 
 networks:
   localnet:

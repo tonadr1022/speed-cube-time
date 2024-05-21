@@ -14,8 +14,16 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func NewService(jwtSigningKey string, jwtTokenExpirationMinutes int, repository Repository) Service {
-	return service{jwtSigningKey, jwtTokenExpirationMinutes, repository}
+type SettingsRepository interface {
+	Create(ctx context.Context, userId string, s *entity.Settings) error
+}
+
+type SessionsRepository interface {
+	Create(ctx context.Context, userId string, s *entity.Session) error
+}
+
+func NewService(jwtSigningKey string, jwtTokenExpirationMinutes int, repository Repository, settingsRepo SettingsRepository, sessionsRepo SessionsRepository) Service {
+	return service{jwtSigningKey, jwtTokenExpirationMinutes, repository, settingsRepo, sessionsRepo}
 }
 
 type LoginResponse struct {
@@ -40,12 +48,13 @@ type service struct {
 	jwtSigningKey             string
 	jwtTokenExpirationMinutes int
 	repo                      Repository
+	settingsRepo              SettingsRepository
+	sessionsRepo              SessionsRepository
 }
 
 type Identity interface {
 	GetID() string
 	GetUsername() string
-	GetActiveCubeSessionId() string
 }
 
 func (s service) Login(ctx context.Context, payload *entity.LoginUserPayload) (LoginResponse, error) {
@@ -61,6 +70,7 @@ func (s service) get(ctx context.Context, userId string) (*entity.User, error) {
 	return s.repo.Get(ctx, userId)
 }
 
+// registers a user and creates settings instance and default cube session
 func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) (LoginResponse, error) {
 	hashedPassword, err := s.hashPassword(req.Password)
 	if err != nil {
@@ -86,8 +96,43 @@ func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) 
 		return LoginResponse{}, err
 	}
 
+	// create default session
+	timeNow = time.Now().UTC()
+	defaultSession := &entity.Session{
+		ID:        uuid.NewString(),
+		Name:      "Default",
+		CubeType:  "333",
+		CreatedAt: timeNow,
+		UpdatedAt: timeNow,
+	}
+	err = s.sessionsRepo.Create(ctx, user.ID, defaultSession)
+	if err != nil {
+		// delete user since session creation failed
+		deleteErr := s.repo.Delete(ctx, user.ID)
+		if deleteErr != nil {
+			return LoginResponse{}, deleteErr
+		}
+		return LoginResponse{}, err
+	}
+
+	// create default settings
+	defaultSettings := &entity.Settings{
+		ID:                  uuid.NewString(),
+		ActiveCubeSessionId: defaultSession.ID,
+	}
+	err = s.settingsRepo.Create(ctx, user.ID, defaultSettings)
+	if err != nil {
+		// delete user since settings creation failed
+		deleteErr := s.repo.Delete(ctx, user.ID)
+		if deleteErr != nil {
+			return LoginResponse{}, deleteErr
+		}
+		return LoginResponse{}, err
+	}
+
 	// login the user
 	res, err := s.Login(ctx, &entity.LoginUserPayload{Username: req.Username, Password: req.Password})
+
 	return res, err
 }
 
@@ -118,13 +163,7 @@ func (s service) Update(ctx context.Context, req *entity.UpdateUserPayload) erro
 		}
 		user.Password = string(hashedPassword)
 	}
-	if req.ActiveCubeSessionId != "" {
-		user.ActiveCubeSessionId = req.ActiveCubeSessionId
-	}
 
-	if err != nil {
-		return err
-	}
 	return s.repo.Update(ctx, user)
 }
 
@@ -153,12 +192,10 @@ func (s service) authenticate(ctx context.Context, username string, password str
 
 func (s service) generateJWT(identity Identity) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
-	fmt.Printf("acc %v\n", identity.GetActiveCubeSessionId())
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":                identity.GetID(),
-		"username":          identity.GetUsername(),
-		"active_session_id": identity.GetActiveCubeSessionId(),
-		"exp":               time.Now().Add(time.Duration(s.jwtTokenExpirationMinutes * int(time.Minute))).Unix(),
+		"id":       identity.GetID(),
+		"username": identity.GetUsername(),
+		"exp":      time.Now().Add(time.Duration(s.jwtTokenExpirationMinutes * int(time.Minute))).Unix(),
 	})
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
