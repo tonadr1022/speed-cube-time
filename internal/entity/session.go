@@ -10,6 +10,7 @@ type Session struct {
 	CubeType  string    `json:"cube_type"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	UserId    string    `json:"user_id,omitempty"`
 }
 
 type CreateSessionPayload struct {

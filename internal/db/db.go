@@ -8,6 +8,7 @@ import (
 	"github.com/cenkalti/backoff"
 	_ "github.com/cockroachdb/cockroach-go/v2/crdb"
 	"github.com/lib/pq"
+	"github.com/tonadr1022/speed-cube-time/internal/apperrors"
 )
 
 // initializes the database connection and creates tables if not initialized
@@ -50,7 +51,7 @@ func TransformError(err error) error {
 	}
 	if dbErr, ok := err.(*pq.Error); ok {
 		if dbErr.Code == "23505" {
-			return ErrDBRowUniqueConstraint
+			return apperrors.ErrAlreadyExists
 		}
 	}
 	return err

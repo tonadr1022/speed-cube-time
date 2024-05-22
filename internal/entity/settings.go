@@ -15,4 +15,5 @@ type UpdateSettingsPayload struct {
 
 type CreateSettingsPayload struct {
 	ActiveCubeSessionId string `json:"active_cube_session_id" validate:"required,uuid"`
+	UserId              string `json:"user_id,omitempty"`
 }

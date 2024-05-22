@@ -2,10 +2,7 @@ package session
 
 import (
 	"context"
-	"errors"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/tonadr1022/speed-cube-time/internal/auth"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
 )
@@ -17,31 +14,28 @@ type service struct {
 type Service interface {
 	Get(ctx context.Context, id string) (*entity.Session, error)
 	Create(ctx context.Context, req *entity.CreateSessionPayload) (*entity.Session, error)
-	Update(ctx context.Context, id string, req *entity.UpdateSessionPayload) (*entity.Session, error)
+	Update(ctx context.Context, id string, req *entity.UpdateSessionPayload) error
 	Delete(ctx context.Context, id string) error
+	QueryByUser(ctx context.Context, userId string) ([]*entity.Session, error)
 	Query(ctx context.Context) ([]*entity.Session, error)
 }
-
-var (
-	ErrSessionNotFound = errors.New("session not found")
-	ErrSessionExists   = errors.New("session already exists")
-)
 
 func NewService(repository Repository) Service {
 	return service{repo: repository}
 }
 
-func (s service) Update(ctx context.Context, id string, req *entity.UpdateSessionPayload) (*entity.Session, error) {
+func (s service) Update(ctx context.Context, id string, req *entity.UpdateSessionPayload) error {
 	existing, err := s.Get(ctx, id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	existing.Name = req.Name
 	if req.CubeType != "" {
 		existing.CubeType = req.CubeType
 	}
-	existing.UpdatedAt = time.Now()
-	return existing, s.repo.Update(ctx, existing)
+	// existing.UpdatedAt = time.Now().UTC()
+	_, err = s.repo.Update(ctx, existing)
+	return err
 }
 
 func (s service) Get(ctx context.Context, id string) (*entity.Session, error) {
@@ -53,18 +47,11 @@ func (s service) Get(ctx context.Context, id string) (*entity.Session, error) {
 }
 
 func (s service) Query(ctx context.Context) ([]*entity.Session, error) {
-	user := auth.CurrentUser(ctx)
-	sessions, err := s.repo.Query(ctx, user.GetID())
-	var ret []*entity.Session
-	if err != nil {
-		return ret, err
-	}
-	ret = append(ret, sessions...)
-	if len(ret) == 0 {
-		ret = []*entity.Session{}
-		return ret, nil
-	}
-	return ret, nil
+	return s.repo.Query(ctx)
+}
+
+func (s service) QueryByUser(ctx context.Context, userId string) ([]*entity.Session, error) {
+	return s.repo.QueryByUser(ctx, userId)
 }
 
 func (s service) Delete(ctx context.Context, id string) error {
@@ -72,19 +59,19 @@ func (s service) Delete(ctx context.Context, id string) error {
 }
 
 func (s service) Create(ctx context.Context, req *entity.CreateSessionPayload) (*entity.Session, error) {
-	user := auth.CurrentUser(ctx)
-
 	cubeType := "333"
 	if req.CubeType != "" {
 		cubeType = req.CubeType
 	}
-	timeNow := time.Now().UTC()
 	session := &entity.Session{
-		ID:        uuid.NewString(),
-		CubeType:  cubeType,
-		Name:      req.Name,
-		CreatedAt: timeNow,
-		UpdatedAt: timeNow,
+		CubeType: cubeType,
+		Name:     req.Name,
+		UserId:   auth.CurrentUser(ctx).GetID(),
 	}
-	return session, s.repo.Create(ctx, user.GetID(), session)
+
+	sessionId, err := s.repo.Create(ctx, session)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(ctx, sessionId)
 }

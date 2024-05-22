@@ -16,18 +16,17 @@ import (
 func WithJWTAuth(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authString := r.Header.Get("Authorization")
-
 		// attempt to parse the token
 		if authString == "" {
 			util.WriteApiError(w, http.StatusUnauthorized, "unauthenticated")
 			return
 		}
-		strings := strings.Split(authString, "Bearer ")
-		if len(strings) != 2 {
+		tokenStrings := strings.Split(authString, "Bearer")
+		if len(tokenStrings) != 2 {
 			util.WriteApiError(w, http.StatusUnauthorized, "malformed token")
 		}
-		tokenString := strings[1]
-		token, err := validateJWT(tokenString)
+		tokenString := tokenStrings[1]
+		token, err := validateJWT(strings.TrimSpace(tokenString))
 
 		// handle the token result
 		switch {

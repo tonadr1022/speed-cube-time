@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/tonadr1022/speed-cube-time/internal/auth"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
 	"github.com/tonadr1022/speed-cube-time/internal/util"
 )
@@ -13,68 +12,49 @@ type resource struct {
 	service Service
 }
 
-func RegisterHandlers(r *mux.Router, service Service) {
+func RegisterHandlers(r *mux.Router, service Service, authHandler util.MiddlewareFunc) {
 	res := resource{service}
-	r.HandleFunc("/session/{id}", auth.WithJWTAuth(util.MakeHttpHandler(res.get))).Methods(http.MethodGet)
-	r.HandleFunc("/session", auth.WithJWTAuth(util.MakeHttpHandler(res.create))).Methods(http.MethodPost)
-	r.HandleFunc("/session", auth.WithJWTAuth(util.MakeHttpHandler(res.query))).Methods(http.MethodGet)
-	r.HandleFunc("/session/{id}", auth.WithJWTAuth(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
-	r.HandleFunc("/session/{id}", auth.WithJWTAuth(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
-}
-
-func (res resource) query(w http.ResponseWriter, r *http.Request) error {
-	users, err := res.service.Query(r.Context())
-	if err != nil {
-		return err
-	}
-	return util.WriteJson(w, http.StatusOK, users)
+	// get by id
+	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.getById))).Methods(http.MethodGet)
+	// create
+	r.HandleFunc("/sessions", authHandler(util.MakeHttpHandler(res.create))).Methods(http.MethodPost)
+	// update
+	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
+	// delete
+	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
+	// query by user
+	r.HandleFunc("/users/{userId}/sessions", authHandler(util.MakeHttpHandler(res.queryByUser))).Methods(http.MethodGet)
+	// query all
+	r.HandleFunc("/sessions", authHandler(util.MakeHttpHandler(res.query))).Methods(http.MethodGet)
 }
 
 func (res resource) delete(w http.ResponseWriter, r *http.Request) error {
-	id := mux.Vars(r)["id"]
-	err := res.service.Delete(r.Context(), id)
-	if err != nil {
-		if err == ErrSessionNotFound {
-			return util.WriteApiError(w, http.StatusNotFound, ErrSessionNotFound.Error())
-		}
-		return util.WriteApiError(w, http.StatusInternalServerError, err.Error())
-	}
-	return util.WriteJson(w, http.StatusNoContent, nil)
+	return util.GenericDeleteHandler(res.service, w, r)
 }
 
 func (res resource) create(w http.ResponseWriter, r *http.Request) error {
 	var payload entity.CreateSessionPayload
-
-	isValid := util.ParseValidateWriteIfFailPayload(w, r, &payload)
-	if !isValid {
-		return nil
-	}
-	response, err := res.service.Create(r.Context(), &payload)
-	if err != nil {
-		return err
-	}
-	return util.WriteJson(w, http.StatusCreated, response)
+	return util.GenericCreateHandler(res.service, &payload, w, r)
 }
 
 func (res resource) update(w http.ResponseWriter, r *http.Request) error {
-	id := mux.Vars(r)["id"]
 	var payload entity.UpdateSessionPayload
-	valid := util.ParseValidateWriteIfFailPayload(w, r, &payload)
-	if !valid {
-		return nil
-	}
-	response, err := res.service.Update(r.Context(), id, &payload)
-	if err != nil {
-		return err
-	}
-	return util.WriteJson(w, http.StatusCreated, response)
+	return util.GenericUpdateHandler(res.service, &payload, w, r)
 }
 
-func (res resource) get(w http.ResponseWriter, r *http.Request) error {
-	id := mux.Vars(r)["id"]
-	session, err := res.service.Get(r.Context(), id)
+func (res resource) getById(w http.ResponseWriter, r *http.Request) error {
+	return util.GenericGetByIdHandler(res.service, w, r)
+}
+
+func (res resource) query(w http.ResponseWriter, r *http.Request) error {
+	return util.GenericQueryHandler(res.service, w, r)
+}
+
+func (res resource) queryByUser(w http.ResponseWriter, r *http.Request) error {
+	userId := mux.Vars(r)["userId"]
+	users, err := res.service.QueryByUser(r.Context(), userId)
 	if err != nil {
 		return err
 	}
-	return util.WriteJson(w, http.StatusOK, session)
+	return util.WriteJson(w, http.StatusOK, users)
 }

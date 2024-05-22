@@ -2,24 +2,21 @@ package auth
 
 import (
 	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
+	"github.com/tonadr1022/speed-cube-time/internal/apperrors"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type SettingsRepository interface {
-	Create(ctx context.Context, userId string, s *entity.Settings) error
+	Create(ctx context.Context, s *entity.CreateSettingsPayload) (string, error)
 }
 
 type SessionsRepository interface {
-	Create(ctx context.Context, userId string, s *entity.Session) error
+	Create(ctx context.Context, s *entity.Session) (string, error)
 }
 
 func NewService(jwtSigningKey string, jwtTokenExpirationMinutes int, repository Repository, settingsRepo SettingsRepository, sessionsRepo SessionsRepository) Service {
@@ -31,18 +28,14 @@ type LoginResponse struct {
 }
 
 type Service interface {
+	Get(ctx context.Context, id string) (*entity.User, error)
+	GetUserAndSettings(ctx context.Context, id string) (*entity.UserAndSettings, error)
 	Login(ctx context.Context, p *entity.LoginUserPayload) (LoginResponse, error)
 	Register(ctx context.Context, req *entity.RegisterUserPayload) (LoginResponse, error)
 	Query(ctx context.Context) ([]*entity.User, error)
 	Update(ctx context.Context, req *entity.UpdateUserPayload) error
-	DeleteUser(ctx context.Context) error
+	Delete(ctx context.Context) error
 }
-
-var (
-	ErrUserExists         = errors.New("user already exists")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-)
 
 type service struct {
 	jwtSigningKey             string
@@ -57,6 +50,16 @@ type Identity interface {
 	GetUsername() string
 }
 
+func (s service) GetUserAndSettings(ctx context.Context, id string) (*entity.UserAndSettings, error) {
+	return s.repo.GetUserAndSettings(ctx, id)
+}
+
+// gets a user stripped of their password
+func (s service) Get(ctx context.Context, id string) (*entity.User, error) {
+	return s.repo.Get(ctx, id)
+}
+
+// logs in a user
 func (s service) Login(ctx context.Context, payload *entity.LoginUserPayload) (LoginResponse, error) {
 	identity, err := s.authenticate(ctx, payload.Username, payload.Password)
 	if err != nil {
@@ -66,49 +69,36 @@ func (s service) Login(ctx context.Context, payload *entity.LoginUserPayload) (L
 	return LoginResponse{tokenString}, err
 }
 
-func (s service) get(ctx context.Context, userId string) (*entity.User, error) {
-	return s.repo.Get(ctx, userId)
-}
-
 // registers a user and creates settings instance and default cube session
 func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) (LoginResponse, error) {
+	// check if user exists
+	_, err := s.repo.GetOneByUsername(ctx, req.Username)
+	if err == nil {
+		return LoginResponse{}, apperrors.ErrAlreadyExists
+	}
+
+	// create the user
 	hashedPassword, err := s.hashPassword(req.Password)
 	if err != nil {
 		return LoginResponse{}, err
 	}
-
-	// check if user exists
-	_, err = s.repo.GetOneByUsername(ctx, req.Username)
-	if err == nil {
-		return LoginResponse{}, ErrUserExists
-	}
-
-	// create the user
-	timeNow := time.Now().UTC()
-	user := &entity.User{
-		ID:        uuid.NewString(),
-		Username:  req.Username,
-		Password:  string(hashedPassword),
-		CreatedAt: timeNow,
-	}
-	err = s.repo.Create(ctx, user)
+	userId, err := s.repo.Create(ctx, &entity.User{
+		Username: req.Username,
+		Password: string(hashedPassword),
+	})
 	if err != nil {
 		return LoginResponse{}, err
 	}
 
 	// create default session
-	timeNow = time.Now().UTC()
-	defaultSession := &entity.Session{
-		ID:        uuid.NewString(),
-		Name:      "Default",
-		CubeType:  "333",
-		CreatedAt: timeNow,
-		UpdatedAt: timeNow,
-	}
-	err = s.sessionsRepo.Create(ctx, user.ID, defaultSession)
+	sessionId, err := s.sessionsRepo.Create(ctx, &entity.Session{
+		Name:     "Default",
+		CubeType: "333",
+		UserId:   userId,
+	})
 	if err != nil {
 		// delete user since session creation failed
-		deleteErr := s.repo.Delete(ctx, user.ID)
+		deleteErr := s.repo.Delete(ctx, userId)
 		if deleteErr != nil {
 			return LoginResponse{}, deleteErr
 		}
@@ -116,14 +106,10 @@ func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) 
 	}
 
 	// create default settings
-	defaultSettings := &entity.Settings{
-		ID:                  uuid.NewString(),
-		ActiveCubeSessionId: defaultSession.ID,
-	}
-	err = s.settingsRepo.Create(ctx, user.ID, defaultSettings)
+	_, err = s.settingsRepo.Create(ctx, &entity.CreateSettingsPayload{UserId: userId, ActiveCubeSessionId: sessionId})
 	if err != nil {
 		// delete user since settings creation failed
-		deleteErr := s.repo.Delete(ctx, user.ID)
+		deleteErr := s.repo.Delete(ctx, userId)
 		if deleteErr != nil {
 			return LoginResponse{}, deleteErr
 		}
@@ -132,60 +118,49 @@ func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) 
 
 	// login the user
 	res, err := s.Login(ctx, &entity.LoginUserPayload{Username: req.Username, Password: req.Password})
-
 	return res, err
 }
 
+// queries all users stripped of their passwords
 func (s service) Query(ctx context.Context) ([]*entity.User, error) {
-	users, err := s.repo.Query(ctx)
-	var ret []*entity.User
-	if err != nil {
-		return ret, err
-	}
-	ret = append(ret, users...)
-
-	if len(ret) == 0 {
-		ret = []*entity.User{}
-	}
-	return ret, nil
+	return s.repo.Query(ctx)
 }
 
 func (s service) Update(ctx context.Context, req *entity.UpdateUserPayload) error {
-	user, err := s.get(ctx, CurrentUser(ctx).GetID())
+	// get current
+	userId := CurrentUser(ctx).GetID()
+	user, err := s.Get(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	if req.Password != "" {
-		hashedPassword, err := s.hashPassword(req.Password)
+	// check fields
+	if req.Password != nil {
+		hashedPassword, err := s.hashPassword(*req.Password)
 		if err != nil {
 			return err
 		}
 		user.Password = string(hashedPassword)
 	}
-
+	if req.Username != nil {
+		user.Username = *req.Username
+	}
 	return s.repo.Update(ctx, user)
 }
 
-func (s service) DeleteUser(ctx context.Context) error {
+func (s service) Delete(ctx context.Context) error {
 	user := CurrentUser(ctx)
-	if user == nil {
-		// should never happen since this is only called with auth
-		return fmt.Errorf("internal server error")
-	}
 	return s.repo.Delete(ctx, user.GetID())
 }
 
 func (s service) authenticate(ctx context.Context, username string, password string) (Identity, error) {
 	user, err := s.repo.GetOneByUsername(ctx, username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrUserNotFound
-		}
-		return nil, err
+		// semi riskily assume the error is not found
+		return nil, apperrors.ErrInvalidCredentials
 	}
 	if !user.ValidPassword(password) {
-		return nil, ErrInvalidCredentials
+		return nil, apperrors.ErrInvalidCredentials
 	}
 	return user, nil
 }

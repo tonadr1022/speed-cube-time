@@ -9,8 +9,17 @@ import (
 type User struct {
 	ID        string    `json:"id"`
 	Username  string    `json:"username"`
-	Password  string    `json:"password"`
+	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type UserAndSettings struct {
+	UserID              string `json:"user_id"`
+	Username            string `json:"username"`
+	ActiveCubeSessionID string `json:"active_cube_session_id"`
+	SettingsCreatedAt   string `json:"settings_created_at"`
+	SettingsUpdatedAt   string `json:"settings_updated_at"`
 }
 
 func (u User) GetID() string {
@@ -31,9 +40,8 @@ type LoginUserPayload struct {
 }
 
 type UpdateUserPayload struct {
-	Username            string `json:"username" validate:"omitempty,min=3,max=50"`
-	Password            string `json:"password" validate:"omitempty,min=3,max=100"`
-	ActiveCubeSessionId string `json:"active_session_id" validate:"omitempty,uuid"`
+	Username *string `json:"username" validate:"omitempty,min=3,max=50"`
+	Password *string `json:"password" validate:"omitempty,min=3,max=100"`
 }
 
 type RegisterUserPayload struct {

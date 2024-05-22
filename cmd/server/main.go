@@ -17,7 +17,6 @@ func main() {
 	}
 	defer db.Close()
 	router := mux.NewRouter()
-	apiServer := app.NewAPIServer(router, db)
 
 	jwtSigningKey := os.Getenv("JWT_SECRET")
 	if jwtSigningKey == "" {
@@ -27,15 +26,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not parse or find TOKEN_EXPIRATION_MINUTES")
 	}
-	apiServerConfig := &app.ApiServerConfig{
-		JWTSigningKey:             jwtSigningKey,
-		JWTTokenExpirationMinutes: jwtTokenExpirationMinutes,
-	}
-	apiServer.Initialize(apiServerConfig)
-
 	httpPort := os.Getenv("HTTP_PORT")
 	if httpPort == "" {
 		httpPort = "8080"
 	}
+
+	config := &app.ApiServerConfig{
+		JWTSigningKey:             jwtSigningKey,
+		JWTTokenExpirationMinutes: jwtTokenExpirationMinutes,
+	}
+
+	apiServer := app.NewAPIServer(router, db, config)
 	apiServer.Run(httpPort)
 }

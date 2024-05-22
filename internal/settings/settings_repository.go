@@ -11,11 +11,10 @@ import (
 type Repository interface {
 	Get(ctx context.Context, id string) (*entity.Settings, error)
 	GetByUserId(ctx context.Context, userId string) (*entity.Settings, error)
-	Create(ctx context.Context, userId string, s *entity.Settings) error
-	Update(ctx context.Context, id string, s *entity.Settings) error
+	Create(ctx context.Context, s *entity.CreateSettingsPayload) (string, error)
+	Update(ctx context.Context, s *entity.Settings) error
 	Delete(ctx context.Context, id string) error
-
-	Query(ctx context.Context, userId string) ([]*entity.Settings, error)
+	Query(ctx context.Context) ([]*entity.Settings, error)
 }
 
 func NewRepository(db *sql.DB) Repository {
@@ -26,9 +25,9 @@ type repository struct {
 	DB *sql.DB
 }
 
-func (r repository) Query(ctx context.Context, userId string) ([]*entity.Settings, error) {
-	query := `SELECT id, active_cube_session_id, created_at, updated_at FROM settings where user_id = $1`
-	rows, err := r.DB.Query(query, userId)
+func (r repository) Query(ctx context.Context) ([]*entity.Settings, error) {
+	query := `SELECT id, active_cube_session_id, created_at, updated_at FROM settings`
+	rows, err := r.DB.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -43,10 +42,11 @@ func (r repository) Query(ctx context.Context, userId string) ([]*entity.Setting
 	return settingsSlice, nil
 }
 
-func (r repository) Create(ctx context.Context, userId string, s *entity.Settings) error {
-	query := "INSERT INTO settings (id, active_cube_session_id, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)"
-	_, err := r.DB.Exec(query, s.ID, s.ActiveCubeSessionId, userId, s.CreatedAt, s.UpdatedAt)
-	return err
+func (r repository) Create(ctx context.Context, s *entity.CreateSettingsPayload) (string, error) {
+	query := "INSERT INTO settings (active_cube_session_id, user_id) VALUES ($1, $2) RETURNING id"
+	var id string
+	err := r.DB.QueryRowContext(ctx, query, s.ActiveCubeSessionId, s.UserId).Scan(&id)
+	return id, err
 }
 
 func (r repository) Get(ctx context.Context, id string) (*entity.Settings, error) {
@@ -60,7 +60,7 @@ func (r repository) GetByUserId(ctx context.Context, userId string) (*entity.Set
 }
 
 func (r repository) getByQuery(ctx context.Context, query string, thing string) (*entity.Settings, error) {
-	rows, err := r.DB.Query(query, thing)
+	rows, err := r.DB.QueryContext(ctx, query, thing)
 	if err != nil {
 		return nil, err
 	}
@@ -68,17 +68,17 @@ func (r repository) getByQuery(ctx context.Context, query string, thing string) 
 	for rows.Next() {
 		return r.scanIntoSettings(rows)
 	}
-	return nil, ErrSettingsNotFound
+	return nil, sql.ErrNoRows
 }
 
-func (r repository) Update(ctx context.Context, id string, s *entity.Settings) error {
-	query := "UPDATE settings SET active_cube_session_id = $1, updated_at = $3"
-	_, err := r.DB.Exec(query, s.ActiveCubeSessionId, s.UpdatedAt)
+func (r repository) Update(ctx context.Context, s *entity.Settings) error {
+	query := "UPDATE settings SET active_cube_session_id = $1, updated_at = $2 WHERE id = $3"
+	_, err := r.DB.ExecContext(ctx, query, s.ActiveCubeSessionId, s.UpdatedAt, s.ID)
 	return err
 }
 
 func (r repository) Delete(ctx context.Context, id string) error {
-	result, err := r.DB.Exec("DELETE FROM settings WHERE id = $1", id)
+	result, err := r.DB.ExecContext(ctx, "DELETE FROM settings WHERE id = $1", id)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (r repository) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return ErrSettingsNotFound
+		return sql.ErrNoRows
 	}
 	return nil
 }
