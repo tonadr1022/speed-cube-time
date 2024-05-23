@@ -1,6 +1,6 @@
 MODULE := $(shell go list -m)
 MIGRATE := docker-compose run --rm migrate -path /migrations \
-		   -database cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable 
+		   -database postgres://postgres:password@db:5432/cube?sslmode=disable
 .PHONY: build
 build: ## build the API server binary
 	CGO_ENABLED=0 go build -o server $(MODULE)/cmd/server

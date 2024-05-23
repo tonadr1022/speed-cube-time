@@ -26,6 +26,7 @@ func InitCockroaachDB() (*sql.DB, error) {
 		os.Getenv("PGPASSWORD"),
 	)
 
+	fmt.Printf("conn string \n%v\n", pgConnString)
 	openDB := func() error {
 		db, err = sql.Open("postgres", pgConnString)
 		return err

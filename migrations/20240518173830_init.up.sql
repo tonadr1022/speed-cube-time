@@ -1,3 +1,5 @@
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(255) UNIQUE NOT NULL,
@@ -6,11 +8,19 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
-CREATE TYPE IF NOT EXISTS cube_type AS ENUM (
-    '222', '333', '444', '555','666', '777', 
-    '333_bf','444_bf','555_bf', '333_oh',
-    'clock','megaminx','pyraminx','skewb','square_1'
-);
+-- work around since CREATE TYPE IF NOT EXISTS doesn't work 
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_type WHERE typname = 'cube_type'
+        ) THEN
+            CREATE TYPE cube_type AS ENUM (
+        '222', '333', '444', '555','666', '777', 
+        '333_bf','444_bf','555_bf', '333_oh',
+        'clock','megaminx','pyraminx','skewb','square_1'
+            );
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

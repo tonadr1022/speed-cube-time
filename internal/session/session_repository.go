@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/tonadr1022/speed-cube-time/internal/db"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
@@ -11,11 +12,12 @@ import (
 type Repository interface {
 	Get(ctx context.Context, d string) (*entity.Session, error)
 	GetByName(ctx context.Context, name string) (*entity.Session, error)
-	Update(ctx context.Context, session *entity.Session) (string, error)
+	Update(ctx context.Context, id string, s *entity.UpdateSessionPayload) error
 	Create(ctx context.Context, session *entity.Session) (string, error)
 	Query(ctx context.Context) ([]*entity.Session, error)
 	QueryByUser(ctx context.Context, userId string) ([]*entity.Session, error)
 	Delete(ctx context.Context, id string) error
+	DeleteMany(ctx context.Context, ids []string) error
 }
 
 type repository struct {
@@ -24,6 +26,10 @@ type repository struct {
 
 func NewRepository(db *sql.DB) Repository {
 	return repository{db}
+}
+
+func (r repository) DeleteMany(ctx context.Context, ids []string) error {
+	return db.DeleteMany(r.DB, ctx, "sessions", ids)
 }
 
 var baseQuery = "SELECT id, name, cube_type, created_at, updated_at FROM sessions"
@@ -53,11 +59,15 @@ func (r repository) queryByQuery(ctx context.Context, query string, args ...inte
 	return items, nil
 }
 
-func (r repository) Update(ctx context.Context, s *entity.Session) (string, error) {
-	query := "UPDATE sessions SET name = $1, cube_type = $2, updated_at = $3 WHERE id = $1"
-	var id string
-	err := r.DB.QueryRowContext(ctx, query, s.Name, s.CubeType, s.UpdatedAt).Scan(&id)
-	return id, err
+func (r repository) Update(ctx context.Context, id string, s *entity.UpdateSessionPayload) error {
+	query := `UPDATE sessions AS s SET 
+    name = COALESCE(c.name, s.name), 
+    cube_type = COALESCE(c.cube_type, s.cube_type), 
+    updated_at = c.updated_at 
+    FROM (VALUES ($1::uuid, $2::varchar(255), $3::cube_type, $4::timestamp))
+    AS c(id,name,cube_type,updated_at) WHERE c.id::uuid = s.id::uuid`
+	_, err := r.DB.ExecContext(ctx, query, id, s.Name, s.CubeType, time.Now().UTC())
+	return err
 }
 
 func (r repository) Delete(ctx context.Context, id string) error {

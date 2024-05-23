@@ -1,7 +1,8 @@
 services:
   speed-cube-time:
     depends_on:
-      - roach
+      db:
+        condition: service_healthy
     build:
       context: .
       dockerfile: cmd/server/Dockerfile.dev
@@ -16,55 +17,47 @@ services:
     ports:
       - 80:8080
     environment:
-      - APP_DSN=cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable
+      - APP_DSN=postgres://postgres:password@db:5432/cube?sslmode=disable
       - PGHOST=db
-      - PGPORT=26257
-      - PGUSER=username
-      - PGPASSWORD=roach
-      - PGDATABASE=speed_cube_time
+      - PGPORT=5432
+      - PGUSER=postgres
+      - PGPASSWORD=password
+      - PGDATABASE=cube
       - HTTP_PORT=8080
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=redispassword
-      - REDIS_URL=redis://user:password@cache:6379/0?protocol=3
       - JWT_SECRET=Dn84hN+gnUHaBY1ZPFvlr8EKu3pZEhfYtMMo7xUkdO0=
       - TOKEN_EXPIRATION_MINUTES=4320
-
     deploy:
       restart_policy:
         condition: on-failure
-  roach:
-    image: cockroachdb/cockroach:latest-v23.2
-    container_name: roach
-    hostname: db
+  db:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
     networks:
       - localnet
     expose:
       - 8080
-      - 26257
+      - 5432
     ports:
-      - 26257:26257
+      - 5432:5432
       - 8080:8080
     volumes:
-      - roach:/cockroach/cockroach-data
-    command: start-single-node --insecure
-  # cache:
-  #   # platform: linux/arm64/v8
-  #   image: redis:latest
-  #   restart: always
-  #   # container_name: redis
-  #   # command:
-  #   #   - redis-server --save 20 1 --loglevel warning
-  #
-  #   networks:
-  #     - localnet
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - cache:/data
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - PG_USER=postgres
+      - PG_PASSWORD=password
+      - PG_DATABASE=cube
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d cube -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
   migrate: &basemigrate
     container_name: migrate
     profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - localnet
     image: migrate/migrate
@@ -74,11 +67,11 @@ services:
         "-path",
         "/migrations",
         "-database",
-        "cockroach://username:roach@db:26257/speed_cube_time?sslmode=disable",
+        "postgres://postgres:password@db:5432/cube",
       ]
     command: up
     links:
-      - roach
+      - db
     volumes:
       - ./migrations:/migrations
   migrate-create:
@@ -89,8 +82,7 @@ services:
     <<: *basemigrate
     command: ["drop", "-f"]
 volumes:
-  roach:
-  # cache:
+  pgdata:
 
 networks:
   localnet:

@@ -15,7 +15,9 @@ type Service interface {
 	Count(ctx context.Context) (int, error)
 	Create(ctx context.Context, req *entity.CreateSolvePayload) (*entity.Solve, error)
 	Update(ctx context.Context, id string, req *entity.UpdateSolvePayload) error
+	UpdateMany(ctx context.Context, req []*entity.UpdateManySolvePayload) error
 	Delete(ctx context.Context, id string) error
+	DeleteMany(ctx context.Context, ids []string) error
 	QueryForUser(ctx context.Context, userId string) ([]*entity.Solve, error)
 	Query(ctx context.Context) ([]*entity.Solve, error)
 	QueryForSession(ctx context.Context, sessionId string) ([]*entity.Solve, error)
@@ -34,11 +36,7 @@ func (s service) Count(ctx context.Context) (int, error) {
 }
 
 func (s service) Get(ctx context.Context, id string) (*entity.Solve, error) {
-	solve, err := s.repo.Get(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	return solve, nil
+	return s.repo.Get(ctx, id)
 }
 
 func (s service) Create(ctx context.Context, req *entity.CreateSolvePayload) (*entity.Solve, error) {
@@ -60,33 +58,15 @@ func (s service) Create(ctx context.Context, req *entity.CreateSolvePayload) (*e
 }
 
 func (s service) Update(ctx context.Context, id string, req *entity.UpdateSolvePayload) error {
-	solve, err := s.Get(ctx, id)
-	if err != nil {
-		return err
-	}
-	if req.Duration != nil {
-		solve.Duration = *req.Duration
-	}
-	if req.Scramble != nil {
-		solve.Scramble = *req.Scramble
-	}
-	if req.CubeSessionId != nil {
-		solve.CubeSessionId = *req.CubeSessionId
-	}
-	if req.CubeType != nil {
-		solve.CubeType = *req.CubeType
-	}
-	if req.Dnf != nil {
-		solve.Dnf = *req.Dnf
-	}
-	if req.PlusTwo != nil {
-		solve.PlusTwo = *req.PlusTwo
-	}
-	if req.Notes != nil {
-		solve.Notes = *req.Notes
-	}
-	// solve.UpdatedAt = time.Now().UTC()
-	return s.repo.Update(ctx, solve)
+	return s.repo.Update(ctx, id, req)
+}
+
+func (s service) UpdateMany(ctx context.Context, req []*entity.UpdateManySolvePayload) error {
+	return s.repo.UpdateMany(ctx, req)
+}
+
+func (s service) DeleteMany(ctx context.Context, ids []string) error {
+	return s.repo.DeleteMany(ctx, ids)
 }
 
 func (s service) Delete(ctx context.Context, id string) error {

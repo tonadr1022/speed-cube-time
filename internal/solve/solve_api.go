@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/tonadr1022/speed-cube-time/internal/apperrors"
 	"github.com/tonadr1022/speed-cube-time/internal/entity"
 	"github.com/tonadr1022/speed-cube-time/internal/util"
 )
@@ -22,18 +23,43 @@ func RegisterHandlers(r *mux.Router, service Service, authHandler util.Middlewar
 	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.get))).Methods(http.MethodGet)
 	// create solve
 	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.create))).Methods(http.MethodPost)
+	// batch delete solves
+	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.deleteMany))).Methods(http.MethodDelete)
 	// solves of user
 	r.HandleFunc("/users/{userId}/solves", authHandler(util.MakeHttpHandler(res.queryForUser))).Methods(http.MethodGet)
 	// solves of session
 	r.HandleFunc("/sessions/{sessionId}/solves", authHandler(util.MakeHttpHandler(res.queryForSession))).Methods(http.MethodGet)
 	// update solve
 	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
+	// update many solves
+	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.updateMany))).Methods(http.MethodPatch)
 	// delete solve
 	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
 }
 
 func (res resource) delete(w http.ResponseWriter, r *http.Request) error {
 	return util.GenericDeleteHandler(res.service, w, r)
+}
+
+func (res resource) deleteMany(w http.ResponseWriter, r *http.Request) error {
+	return util.GenericDeleteManyHandler(res.service, w, r)
+}
+
+func (res resource) updateMany(w http.ResponseWriter, r *http.Request) error {
+	var payload []*entity.UpdateManySolvePayload
+	err := util.ParseJson(r, &payload)
+	if err != nil {
+		util.WriteApiError(w, http.StatusBadRequest, apperrors.ErrMalformedRequest.Error())
+	}
+	err = util.Validate.Var(payload, "required,dive")
+	if err != nil {
+		return util.WriteApiError(w, http.StatusBadRequest, err.Error())
+	}
+	err = res.service.UpdateMany(r.Context(), payload)
+	if err != nil {
+		return err
+	}
+	return util.WriteJson(w, http.StatusNoContent, nil)
 }
 
 func (res resource) create(w http.ResponseWriter, r *http.Request) error {

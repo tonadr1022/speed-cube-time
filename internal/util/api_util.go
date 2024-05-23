@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/tonadr1022/speed-cube-time/internal/apperrors"
 )
@@ -16,24 +17,13 @@ import (
 func WriteJson(w http.ResponseWriter, status int, v any) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+	if v == nil {
+		return nil
+	}
 	return json.NewEncoder(w).Encode(v)
 }
 
-var validate = validator.New()
-
-type validationError struct {
-	Namespace       string `json:"namespace"` // can differ when a custom TagNameFunc is registered or
-	Field           string `json:"field"`     // by passing alt name to ReportError like below
-	StructNamespace string `json:"structNamespace"`
-	StructField     string `json:"structField"`
-	Tag             string `json:"tag"`
-	ActualTag       string `json:"actualTag"`
-	Kind            string `json:"kind"`
-	Type            string `json:"type"`
-	Value           string `json:"value"`
-	Param           string `json:"param"`
-	Message         string `json:"message"`
-}
+var Validate = validator.New()
 
 func ParseJson(r *http.Request, v any) error {
 	if r.Body == nil {
@@ -44,10 +34,6 @@ func ParseJson(r *http.Request, v any) error {
 
 func WriteApiError(w http.ResponseWriter, status int, message string) error {
 	return WriteJson(w, status, ApiError{Error: message})
-}
-
-func WriteMalformedRequest(w http.ResponseWriter) error {
-	return WriteApiError(w, http.StatusBadRequest, "malformed request")
 }
 
 type ApiFunc func(http.ResponseWriter, *http.Request) error
@@ -69,6 +55,7 @@ func MakeHttpHandler(next ApiFunc) http.HandlerFunc {
 			return
 		}
 		if err := next(w, r); err != nil {
+			fmt.Printf("here handler %v \n", err.Error())
 			switch {
 			case errors.Is(err, apperrors.ErrNotFound):
 			case errors.Is(err, sql.ErrNoRows):
@@ -89,14 +76,30 @@ type CRUDService[P any, R any, T any] interface {
 	Create(ctx context.Context, req *P) (*R, error)
 	Update(ctx context.Context, id string, req *T) error
 	Delete(ctx context.Context, id string) error
-	Query(ctx context.Context) ([]*R, error)
 }
 
-type GetByCurrentUserService[T any] interface {
-	Get(ctx context.Context) (T, error)
+type DeleteManyService interface {
+	DeleteMany(ctx context.Context, ids []string) error
+}
+type QueryService[T any] interface {
+	Query(ctx context.Context) ([]*T, error)
 }
 
-func GenericQueryHandler[P any, R any, T any](service CRUDService[P, R, T], w http.ResponseWriter, r *http.Request) error {
+func GenericDeleteManyHandler(service DeleteManyService, w http.ResponseWriter, r *http.Request) error {
+	var payload []string
+	err := ParseJson(r, &payload)
+	if err != nil {
+		return WriteApiError(w, http.StatusBadRequest, apperrors.ErrMalformedRequest.Error())
+	}
+	Validate.Var(&payload, "required,dive,uuid")
+	err = service.DeleteMany(r.Context(), payload)
+	if err != nil {
+		return err
+	}
+	return WriteJson(w, http.StatusNoContent, nil)
+}
+
+func GenericQueryHandler[T any](service QueryService[T], w http.ResponseWriter, r *http.Request) error {
 	users, err := service.Query(r.Context())
 	if err != nil {
 		return err
@@ -106,6 +109,9 @@ func GenericQueryHandler[P any, R any, T any](service CRUDService[P, R, T], w ht
 
 func GenericDeleteHandler[P any, R any, T any](service CRUDService[P, R, T], w http.ResponseWriter, r *http.Request) error {
 	id := mux.Vars(r)["id"]
+	if _, err := uuid.Parse(id); err != nil {
+		return WriteApiError(w, http.StatusNotFound, apperrors.ErrNotFound.Error())
+	}
 	err := service.Delete(r.Context(), id)
 	if err != nil {
 		return err
@@ -125,20 +131,16 @@ func GenericCreateHandler[P any, R any, T any](service CRUDService[P, R, T], pay
 	return WriteJson(w, http.StatusCreated, response)
 }
 
-func GenericGetByCurrentUserHandler[T any](service GetByCurrentUserService[T], w http.ResponseWriter, r *http.Request) error {
-	response, err := service.Get(r.Context())
-	if err != nil {
-		return err
-	}
-	return WriteJson(w, http.StatusOK, response)
-}
-
+// parses an id to update a resources, validates, then updates it
 func GenericUpdateHandler[P any, R any, T any](service CRUDService[P, R, T], payload *T, w http.ResponseWriter, r *http.Request) error {
+	id := mux.Vars(r)["id"]
+	if _, err := uuid.Parse(id); err != nil {
+		return WriteApiError(w, http.StatusNotFound, apperrors.ErrNotFound.Error())
+	}
 	isValid := ParseValidateWriteIfFailPayload(w, r, payload)
 	if !isValid {
 		return nil
 	}
-	id := mux.Vars(r)["id"]
 	err := service.Update(r.Context(), id, payload)
 	if err != nil {
 		return err
@@ -146,8 +148,12 @@ func GenericUpdateHandler[P any, R any, T any](service CRUDService[P, R, T], pay
 	return WriteJson(w, http.StatusNoContent, nil)
 }
 
+// parses an id into a uuid to validate, then fetches the resource
 func GenericGetByIdHandler[P any, R any, T any](service CRUDService[P, R, T], w http.ResponseWriter, r *http.Request) error {
 	id := mux.Vars(r)["id"]
+	if _, err := uuid.Parse(id); err != nil {
+		return WriteApiError(w, http.StatusNotFound, apperrors.ErrNotFound.Error())
+	}
 	response, err := service.Get(r.Context(), id)
 	if err != nil {
 		return err
@@ -161,11 +167,10 @@ func GenericGetByIdHandler[P any, R any, T any](service CRUDService[P, R, T], w 
 func ParseValidateWriteIfFailPayload(w http.ResponseWriter, r *http.Request, payload any) bool {
 	err := ParseJson(r, &payload)
 	if err != nil {
-		// WriteApiError(w, http.StatusBadRequest, err.Error())
-		WriteMalformedRequest(w)
+		WriteApiError(w, http.StatusBadRequest, apperrors.ErrMalformedRequest.Error())
 		return false
 	}
-	err = validate.Struct(payload)
+	err = Validate.StructCtx(r.Context(), payload)
 	if err != nil {
 		WriteApiError(w, http.StatusBadRequest, err.Error())
 		return false

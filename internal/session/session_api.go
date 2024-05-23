@@ -32,6 +32,10 @@ func (res resource) delete(w http.ResponseWriter, r *http.Request) error {
 	return util.GenericDeleteHandler(res.service, w, r)
 }
 
+func (res resource) deleteMany(w http.ResponseWriter, r *http.Request) error {
+	return util.GenericDeleteManyHandler(res.service, w, r)
+}
+
 func (res resource) create(w http.ResponseWriter, r *http.Request) error {
 	var payload entity.CreateSessionPayload
 	return util.GenericCreateHandler(res.service, &payload, w, r)

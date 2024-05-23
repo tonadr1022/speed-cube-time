@@ -26,6 +26,10 @@ type CreateSolvePayload struct {
 	Notes         string  `json:"notes" validate:"omitempty"`
 }
 
+type UpdateManySolvePayload struct {
+	UpdateSolvePayload
+	ID *string `json:"id" validate:"required,uuid"`
+}
 type UpdateSolvePayload struct {
 	Duration      *float32 `json:"duration,omitempty" validate:"omitempty,number"`
 	Scramble      *string  `json:"scramble,omitempty" validate:"omitempty"`

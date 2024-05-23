@@ -16,6 +16,7 @@ type Service interface {
 	Create(ctx context.Context, req *entity.CreateSessionPayload) (*entity.Session, error)
 	Update(ctx context.Context, id string, req *entity.UpdateSessionPayload) error
 	Delete(ctx context.Context, id string) error
+	DeleteMany(ctx context.Context, ids []string) error
 	QueryByUser(ctx context.Context, userId string) ([]*entity.Session, error)
 	Query(ctx context.Context) ([]*entity.Session, error)
 }
@@ -25,17 +26,7 @@ func NewService(repository Repository) Service {
 }
 
 func (s service) Update(ctx context.Context, id string, req *entity.UpdateSessionPayload) error {
-	existing, err := s.Get(ctx, id)
-	if err != nil {
-		return err
-	}
-	existing.Name = req.Name
-	if req.CubeType != "" {
-		existing.CubeType = req.CubeType
-	}
-	// existing.UpdatedAt = time.Now().UTC()
-	_, err = s.repo.Update(ctx, existing)
-	return err
+	return s.repo.Update(ctx, id, req)
 }
 
 func (s service) Get(ctx context.Context, id string) (*entity.Session, error) {
@@ -58,15 +49,19 @@ func (s service) Delete(ctx context.Context, id string) error {
 	return s.repo.Delete(ctx, id)
 }
 
+func (s service) DeleteMany(ctx context.Context, ids []string) error {
+	return s.repo.DeleteMany(ctx, ids)
+}
+
 func (s service) Create(ctx context.Context, req *entity.CreateSessionPayload) (*entity.Session, error) {
-	cubeType := "333"
-	if req.CubeType != "" {
-		cubeType = req.CubeType
-	}
 	session := &entity.Session{
-		CubeType: cubeType,
-		Name:     req.Name,
-		UserId:   auth.CurrentUser(ctx).GetID(),
+		Name:   req.Name,
+		UserId: auth.CurrentUser(ctx).GetID(),
+	}
+	if req.CubeType == "" {
+		session.CubeType = "333"
+	} else {
+		session.CubeType = req.CubeType
 	}
 
 	sessionId, err := s.repo.Create(ctx, session)
