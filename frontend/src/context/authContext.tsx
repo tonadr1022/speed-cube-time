@@ -5,7 +5,10 @@ import {
   loginUser,
   registerUser,
 } from "../api/auth-api";
+
 import { jwtDecode } from "jwt-decode";
+import { AxiosError } from "axios";
+import axiosInstance from "../api/api";
 
 type User = {
   id: string;
@@ -69,12 +72,16 @@ function useProvideAuth() {
 
       setUser(jwtDecode(data.token));
       setToken(data.token);
+      axiosInstance.defaults.headers["Authorization"] = `Bearer ${data.token}`;
 
       callback();
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.response.error === "invalid credentials") {
-          throw new Error("Invalid credentials");
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 404) {
+          throw new Error("User not found.");
+        }
+        if (error.response?.data.error === "invalid credentials") {
+          throw new Error("Incorrect Password.");
         }
       }
     }
@@ -99,26 +106,28 @@ function useProvideAuth() {
 
       setUser(user);
       setToken(data.token);
+      axiosInstance.defaults.headers["Authorization"] = `Bearer ${data.token}`;
 
       callback();
     } catch (error) {
-      if (error instanceof Error) {
-        if (error.response.error === "resource already exists") {
-          // throw new Error("User already exists");
+      if (error instanceof AxiosError) {
+        if (error.response?.data.error === "resource already exists") {
           throw new Error("User already exists");
         } else {
-          console.log("no match");
           throw error;
         }
       }
     }
   };
 
-  const logout = (callback: () => void) => {
+  const logout = (callback?: () => void) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
-    callback();
+    setToken(null);
+    axiosInstance.defaults.headers["Authorization"] = null;
+
+    if (callback) callback();
   };
 
   return {

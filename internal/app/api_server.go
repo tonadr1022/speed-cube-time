@@ -31,7 +31,7 @@ func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Set the necessary headers
 		w.Header().Set("Access-Control-Allow-Origin", "*") // Use "*" to allow all origins
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		// Handle preflight requests
@@ -54,14 +54,6 @@ func NewAPIServer(router *mux.Router, db *sql.DB, config *ApiServerConfig) *ApiS
 	session.RegisterHandlers(router, session.NewService(session.NewRepository(db)), auth.WithJWTAuth)
 	settings.RegisterHandlers(router, settings.NewService(settings.NewRepository(db)), auth.WithJWTAuth)
 	solve.RegisterHandlers(router, solve.NewService(solve.NewRepository(db)), auth.WithJWTAuth)
-	// CORS Middleware
-	// corsHandler := handlers.CORS(
-	// 	handlers.AllowedOrigins([]string{"http://localhost:8000"}),
-	// 	handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"}),
-	// 	handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	// 	handlers.AllowCredentials(),
-	// )
-	// router.Use(corsHandler)
 	s := &ApiServer{router, db}
 
 	return s

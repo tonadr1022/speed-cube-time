@@ -10,7 +10,7 @@ type Props = {
 
 const initialFormState: CubeSessionCreatePayload = {
   name: "",
-  cubeType: "333",
+  cube_type: "333",
 };
 
 const CreateCubeSessionForm = ({ onCompleted }: Props) => {
@@ -69,8 +69,8 @@ const CreateCubeSessionForm = ({ onCompleted }: Props) => {
         <select
           className="select select-sm select-bordered w-full max-w-xs"
           name="cubeType"
-          value={data.cubeType}
-          onChange={(e) => setData({ ...data, cubeType: e.target.value })}
+          value={data.cube_type}
+          onChange={(e) => setData({ ...data, cube_type: e.target.value })}
         >
           {Object.entries(CUBE_TYPE_OPTIONS).map(([key, value]) => (
             <option key={key} value={key}>

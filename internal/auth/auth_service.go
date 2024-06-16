@@ -156,8 +156,7 @@ func (s service) Delete(ctx context.Context) error {
 func (s service) authenticate(ctx context.Context, username string, password string) (Identity, error) {
 	user, err := s.repo.GetOneByUsername(ctx, username)
 	if err != nil {
-		// semi riskily assume the error is not found
-		return nil, apperrors.ErrInvalidCredentials
+		return nil, err
 	}
 	if !user.ValidPassword(password) {
 		return nil, apperrors.ErrInvalidCredentials

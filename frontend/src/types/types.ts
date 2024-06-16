@@ -2,44 +2,48 @@ export type Solve = {
   id: string;
   duration: number;
   scramble: string;
-  cubeType: string;
-  cubeSessionId: string;
+  cube_type: string;
+  cube_session_id: string;
   dnf: boolean;
-  plusTwo: boolean;
+  plus_two: boolean;
   notes: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
+  created_at: Date;
+  updated_at: Date;
+  user_id: string;
 };
 
 export type SolveCreatePayload = {
   duration: number;
   scramble: string;
-  cubeSessionId: string;
-  cubeType: string;
+  cube_session_id: string;
+  cube_type: string;
   dnf: boolean;
-  plusTwo: boolean;
+  plus_two: boolean;
   notes: string;
 };
 
 export type Settings = {
   id: string;
   theme: string;
-  activeCubeSessionId: string;
-  createdAt: Date;
-  updatedAt: Date;
+  active_cube_session_id: string;
+  created_at: Date;
+  updated_at: Date;
+};
+export type SettingsUpdatePayload = {
+  theme?: string;
+  active_cube_session_id?: string;
 };
 
 export type CubeSession = {
   id: string;
   name: string;
-  cubeType: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
+  cube_type: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 };
 
 export type CubeSessionCreatePayload = {
   name: string;
-  cubeType: string;
+  cube_type: string;
 };

@@ -6,6 +6,13 @@ export const fetchAllSolves = async (): Promise<Solve[]> => {
   return res.data;
 };
 
+export const fetchCubeSessionSolves = async (
+  sessionId: string,
+): Promise<Solve[]> => {
+  const res = await axiosInstance.get(`/sessions/${sessionId}/solves`);
+  return res.data;
+};
+
 export const fetchUserSolves = async (userId: string): Promise<Solve[]> => {
   const res = await axiosInstance.get(`/users/${userId}/solves`);
   return res.data;

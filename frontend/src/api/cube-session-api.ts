@@ -19,7 +19,7 @@ export const createCubeSession = async (
 ) => {
   const res = await axiosInstance.post("/sessions", {
     name: cubeSession.name,
-    cube_type: cubeSession.cubeType,
+    cube_type: cubeSession.cube_type,
   });
   return res.data;
 };

@@ -11,6 +11,8 @@ import CubeSessionsPage from "./routes/cube-sessions-page";
 import { AuthProvider } from "./context/authContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SettingsProvider } from "./context/settingsContext";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { TimerContextProvider } from "./context/timerContext";
 
 const router = createBrowserRouter([
   {
@@ -45,9 +47,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SettingsProvider>
-          <RouterProvider router={router} />
+          <TimerContextProvider>
+            <RouterProvider router={router} />
+          </TimerContextProvider>
         </SettingsProvider>
       </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={true} />
     </QueryClientProvider>
   </React.StrictMode>,
 );

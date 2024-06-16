@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { AuthContext } from "../context/authContext";
 import { SettingsContext } from "../context/settingsContext";
 import { CubeSettingsContext } from "../context/cubeSettingContext";
+import { TimerContext } from "../context/timerContext";
 
 export const useAuth = () => {
   const auth = useContext(AuthContext);
@@ -11,18 +12,26 @@ export const useAuth = () => {
   return auth;
 };
 
+export const useTimerContext = () => {
+  const timerContext = useContext(TimerContext);
+  if (!timerContext) {
+    throw new Error("Can't use timer context outside provider");
+  }
+  return timerContext;
+};
+
 export const useSettings = () => {
-  const auth = useContext(SettingsContext);
-  if (!auth) {
+  const settings = useContext(SettingsContext);
+  if (!settings) {
     throw new Error("Can't use settings context outside provider");
   }
-  return auth;
+  return settings;
 };
 
 export const useCubeSettings = () => {
-  const auth = useContext(CubeSettingsContext);
-  if (!auth) {
+  const cubeSettings = useContext(CubeSettingsContext);
+  if (!cubeSettings) {
     throw new Error("Can't use cube settings context outside provider");
   }
-  return auth;
+  return cubeSettings;
 };

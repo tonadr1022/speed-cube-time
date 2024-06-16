@@ -50,12 +50,12 @@ func (r repository) DeleteMany(ctx context.Context, ids []string) error {
 }
 
 func (r repository) QueryByUser(ctx context.Context, userId string) ([]*entity.Solve, error) {
-	query := baseQueryString + " WHERE user_id = $1"
+	query := baseQueryString + " WHERE user_id = $1 ORDER BY created_at DESC"
 	return r.queryByQuery(ctx, query, userId)
 }
 
 func (r repository) QueryBySession(ctx context.Context, sessionId string) ([]*entity.Solve, error) {
-	query := baseQueryString + " WHERE cube_session_id = $1"
+	query := baseQueryString + " WHERE cube_session_id = $1 ORDER BY created_at DESC"
 	return r.queryByQuery(ctx, query, sessionId)
 }
 
