@@ -15,17 +15,17 @@ type resource struct {
 func RegisterHandlers(r *mux.Router, service Service, authHandler util.MiddlewareFunc) {
 	res := resource{service}
 	// get by id
-	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.getById))).Methods(http.MethodGet)
+	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.getById))).Methods(http.MethodGet, http.MethodOptions)
 	// create
-	r.HandleFunc("/sessions", authHandler(util.MakeHttpHandler(res.create))).Methods(http.MethodPost)
+	r.HandleFunc("/sessions", authHandler(util.MakeHttpHandler(res.create))).Methods(http.MethodPost, http.MethodOptions)
 	// update
-	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
+	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch, http.MethodOptions)
 	// delete
-	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
+	r.HandleFunc("/sessions/{id}", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete, http.MethodOptions)
 	// query by user
-	r.HandleFunc("/users/{userId}/sessions", authHandler(util.MakeHttpHandler(res.queryByUser))).Methods(http.MethodGet)
+	r.HandleFunc("/users/{userId}/sessions", authHandler(util.MakeHttpHandler(res.queryByUser))).Methods(http.MethodGet, http.MethodOptions)
 	// query all
-	r.HandleFunc("/sessions", authHandler(util.MakeHttpHandler(res.query))).Methods(http.MethodGet)
+	r.HandleFunc("/sessions", authHandler(util.MakeHttpHandler(res.query))).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (res resource) delete(w http.ResponseWriter, r *http.Request) error {

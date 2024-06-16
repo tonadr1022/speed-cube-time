@@ -50,12 +50,15 @@ type CountReponse struct {
 
 func MakeHttpHandler(next ApiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000") // Use "*" to allow all origins
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// Handle preflight requests
 		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 		if err := next(w, r); err != nil {
-			fmt.Printf("here handler %v \n", err.Error())
 			switch {
 			case errors.Is(err, apperrors.ErrNotFound):
 			case errors.Is(err, sql.ErrNoRows):

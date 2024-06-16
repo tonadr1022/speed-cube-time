@@ -26,26 +26,57 @@ type ApiServerConfig struct {
 	JWTTokenExpirationMinutes int
 }
 
-func NewAPIServer(router *mux.Router, db *sql.DB, config *ApiServerConfig) *ApiServer {
-	s := &ApiServer{router, db}
+// CORS middleware
+func cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set the necessary headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Use "*" to allow all origins
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-	s.router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	s.router.MethodNotAllowedHandler = http.HandlerFunc(methodNotAllowdHandler)
-	settingsRepo := settings.NewRepository(s.db)
-	sessionsRepo := session.NewRepository(s.db)
-	auth.RegisterHandlers(s.router, auth.NewService(config.JWTSigningKey, config.JWTTokenExpirationMinutes, auth.NewRepository(s.db), settingsRepo, sessionsRepo), auth.WithJWTAuth)
-	session.RegisterHandlers(s.router, session.NewService(session.NewRepository(s.db)), auth.WithJWTAuth)
-	settings.RegisterHandlers(s.router, settings.NewService(settings.NewRepository(s.db)), auth.WithJWTAuth)
-	solve.RegisterHandlers(s.router, solve.NewService(solve.NewRepository(s.db)), auth.WithJWTAuth)
-	s.router.Use(mux.CORSMethodMiddleware(s.router))
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func NewAPIServer(router *mux.Router, db *sql.DB, config *ApiServerConfig) *ApiServer {
+	router.Use(cors)
+	router.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	router.MethodNotAllowedHandler = http.HandlerFunc(methodNotAllowdHandler)
+	settingsRepo := settings.NewRepository(db)
+	sessionsRepo := session.NewRepository(db)
+	auth.RegisterHandlers(router, auth.NewService(config.JWTSigningKey, config.JWTTokenExpirationMinutes, auth.NewRepository(db), settingsRepo, sessionsRepo), auth.WithJWTAuth)
+	session.RegisterHandlers(router, session.NewService(session.NewRepository(db)), auth.WithJWTAuth)
+	settings.RegisterHandlers(router, settings.NewService(settings.NewRepository(db)), auth.WithJWTAuth)
+	solve.RegisterHandlers(router, solve.NewService(solve.NewRepository(db)), auth.WithJWTAuth)
+	// CORS Middleware
+	// corsHandler := handlers.CORS(
+	// 	handlers.AllowedOrigins([]string{"http://localhost:8000"}),
+	// 	handlers.AllowedMethods([]string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"}),
+	// 	handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+	// 	handlers.AllowCredentials(),
+	// )
+	// router.Use(corsHandler)
+	s := &ApiServer{router, db}
 
 	return s
 }
 
 func (s *ApiServer) Run(httpPort string) {
 	loggedHandler := handlers.LoggingHandler(os.Stdout, s.router)
+
+	// credentials := handlers.AllowCredentials()
+	// origins := handlers.AllowedOrigins([]string{"http://localhost:8000", "http://127.0.0.1:3000"})
+	// methods := handlers.AllowedMethods([]string{"POST", "GET", "PATCH", "PUT", "DELETE", "OPTIONS"})
+
 	fmt.Printf("Starting server at port %v\n", httpPort)
 	log.Fatal(http.ListenAndServe(":"+httpPort, loggedHandler))
+	// log.Fatal(http.ListenAndServe(":"+httpPort, handlers.CORS(credentials, methods, origins)(loggedHandler)))
 }
 
 // writes error in json rather than default

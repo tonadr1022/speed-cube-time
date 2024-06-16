@@ -1,63 +1,137 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useState } from "react";
+import {
+  LoginResponse,
+  RegisterResponse,
+  loginUser,
+  registerUser,
+} from "../api/auth-api";
+import { jwtDecode } from "jwt-decode";
+
+type User = {
+  id: string;
+  username: string;
+  tokenExp: number;
+};
+
+type JwtDecodeType = {
+  exp: number;
+  id: string;
+  username: string;
+};
 
 // Define the type for the context
 interface AuthContextType {
-  user: string | null;
-  signin: (callback: () => void) => void;
-  signout: (callback: () => void) => void;
+  user: User | null;
+  token: string | null;
+  login: (
+    username: string,
+    password: string,
+    callback: () => void,
+  ) => Promise<void>;
+  register: (
+    username: string,
+    password: string,
+    callback: () => void,
+  ) => Promise<void>;
+  logout: (callback?: () => void) => void;
 }
 
 // Create the context with an initial value of undefined
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-// ProvideAuth component that provides the auth context to its children
-export function ProvideAuth({ children }: { children: React.ReactNode }) {
-  const auth = useProvideAuth();
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
-}
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
-// ProvideAuth component that provides the auth context to its children
+function useProvideAuth() {
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("token");
+  });
 
-// Hook to use the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within a ProvideAuth");
-  }
-  return context;
-};
-// Fake authentication function
-const fakeAuth = {
-  isAuthenticated: false,
-  signin(cb: () => void) {
-    fakeAuth.isAuthenticated = true;
-    setTimeout(cb, 100); // fake async
-  },
-  signout(cb: () => void) {
-    fakeAuth.isAuthenticated = false;
-    setTimeout(cb, 100);
-  },
-};
+  const login = async (
+    username: string,
+    password: string,
+    callback: () => void,
+  ) => {
+    try {
+      const data: LoginResponse = await loginUser(username, password);
+      const decoded: JwtDecodeType = jwtDecode(data.token);
+      const user = {
+        username: decoded.username,
+        id: decoded.id,
+        tokenExp: decoded.exp,
+      };
 
-export function useProvideAuth() {
-  const [user, setUser] = useState<string | null>(null);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", data.token);
 
-  const signin = (callback: () => void) => {
-    return fakeAuth.signin(() => {
-      setUser("user");
+      setUser(jwtDecode(data.token));
+      setToken(data.token);
+
       callback();
-    });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.response.error === "invalid credentials") {
+          throw new Error("Invalid credentials");
+        }
+      }
+    }
   };
 
-  const signout = (callback: () => void) => {
-    return fakeAuth.signout(() => {
-      setUser(null);
+  const register = async (
+    username: string,
+    password: string,
+    callback: () => void,
+  ) => {
+    try {
+      const data: RegisterResponse = await registerUser(username, password);
+      const decoded: JwtDecodeType = jwtDecode(data.token);
+      const user = {
+        username: decoded.username,
+        id: decoded.id,
+        tokenExp: decoded.exp,
+      };
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      setUser(user);
+      setToken(data.token);
+
       callback();
-    });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.response.error === "resource already exists") {
+          // throw new Error("User already exists");
+          throw new Error("User already exists");
+        } else {
+          console.log("no match");
+          throw error;
+        }
+      }
+    }
+  };
+
+  const logout = (callback: () => void) => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    callback();
   };
 
   return {
     user,
-    signin,
-    signout,
+    token,
+    login,
+    logout,
+    register,
   };
+}
+
+// ProvideAuth component that provides the auth context to its children
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const auth = useProvideAuth();
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 }

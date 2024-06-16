@@ -43,19 +43,19 @@ func (r repository) Query(ctx context.Context) ([]*entity.Settings, error) {
 }
 
 func (r repository) Create(ctx context.Context, s *entity.CreateSettingsPayload) (string, error) {
-	query := "INSERT INTO settings (active_cube_session_id, user_id) VALUES ($1, $2) RETURNING id"
+	query := "INSERT INTO settings (active_cube_session_id, theme, user_id) VALUES ($1, $2, $3) RETURNING id"
 	var id string
-	err := r.DB.QueryRowContext(ctx, query, s.ActiveCubeSessionId, s.UserId).Scan(&id)
+	err := r.DB.QueryRowContext(ctx, query, s.ActiveCubeSessionId, s.Theme, s.UserId).Scan(&id)
 	return id, err
 }
 
 func (r repository) Get(ctx context.Context, id string) (*entity.Settings, error) {
-	query := "SELECT id, active_cube_session_id, created_at, updated_at FROM settings WHERE user_id = $1"
+	query := "SELECT id, active_cube_session_id, theme, created_at, updated_at FROM settings WHERE user_id = $1"
 	return r.getByQuery(ctx, query, id)
 }
 
 func (r repository) GetByUserId(ctx context.Context, userId string) (*entity.Settings, error) {
-	query := "SELECT id, active_cube_session_id, created_at, updated_at FROM settings WHERE user_id = $1"
+	query := "SELECT id, active_cube_session_id, theme, created_at, updated_at FROM settings WHERE user_id = $1"
 	return r.getByQuery(ctx, query, userId)
 }
 
@@ -72,8 +72,8 @@ func (r repository) getByQuery(ctx context.Context, query string, thing string) 
 }
 
 func (r repository) Update(ctx context.Context, s *entity.Settings) error {
-	query := "UPDATE settings SET active_cube_session_id = $1, updated_at = $2 WHERE id = $3"
-	_, err := r.DB.ExecContext(ctx, query, s.ActiveCubeSessionId, s.UpdatedAt, s.ID)
+	query := "UPDATE settings SET active_cube_session_id = $1, updated_at = $2, theme = $3 WHERE id = $4"
+	_, err := r.DB.ExecContext(ctx, query, s.ActiveCubeSessionId, s.UpdatedAt, s.Theme, s.ID)
 	return err
 }
 
@@ -97,6 +97,7 @@ func (r repository) scanIntoSettings(scanner db.Scanner) (*entity.Settings, erro
 	err := scanner.Scan(
 		&settings.ID,
 		&settings.ActiveCubeSessionId,
+		&settings.Theme,
 		&settings.CreatedAt,
 		&settings.CreatedAt,
 	)

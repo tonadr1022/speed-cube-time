@@ -15,20 +15,20 @@ type resource struct {
 func RegisterHandlers(r *mux.Router, service Service, authHandler util.MiddlewareFunc) {
 	res := resource{service}
 	// login the user
-	r.HandleFunc("/login", util.MakeHttpHandler(res.login)).Methods(http.MethodPost)
+	r.HandleFunc("/login", util.MakeHttpHandler(res.login)).Methods(http.MethodPost, http.MethodOptions)
 	// register the user
-	r.HandleFunc("/register", util.MakeHttpHandler(res.register)).Methods(http.MethodPost)
+	r.HandleFunc("/register", util.MakeHttpHandler(res.register)).Methods(http.MethodPost, http.MethodOptions)
 	// delete user
-	r.HandleFunc("/unregister", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
+	r.HandleFunc("/unregister", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete, http.MethodOptions)
 	// get current user from auth context
-	r.HandleFunc("/users/me", authHandler(util.MakeHttpHandler(res.getByCurrentUser))).Methods(http.MethodGet)
-	r.HandleFunc("/users/user-settings", authHandler(util.MakeHttpHandler(res.getUserSettings))).Methods(http.MethodGet)
+	r.HandleFunc("/users/me", authHandler(util.MakeHttpHandler(res.getByCurrentUser))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/users/user-settings", authHandler(util.MakeHttpHandler(res.getUserSettings))).Methods(http.MethodGet, http.MethodOptions)
 	// get all users
-	r.HandleFunc("/users", authHandler(util.MakeHttpHandler(res.query))).Methods(http.MethodGet)
+	r.HandleFunc("/users", authHandler(util.MakeHttpHandler(res.query))).Methods(http.MethodGet, http.MethodOptions)
 	// get user by id
-	r.HandleFunc("/users/{id}", authHandler(util.MakeHttpHandler(res.getById))).Methods(http.MethodGet)
+	r.HandleFunc("/users/{id}", authHandler(util.MakeHttpHandler(res.getById))).Methods(http.MethodGet, http.MethodOptions)
 	// update user by id
-	r.HandleFunc("/users/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
+	r.HandleFunc("/users/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch, http.MethodOptions)
 }
 
 type loginRequest struct {

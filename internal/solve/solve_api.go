@@ -16,25 +16,25 @@ type resource struct {
 func RegisterHandlers(r *mux.Router, service Service, authHandler util.MiddlewareFunc) {
 	res := resource{service}
 	// all solves
-	r.HandleFunc("/solves", util.MakeHttpHandler(res.query)).Methods(http.MethodGet)
+	r.HandleFunc("/solves", util.MakeHttpHandler(res.query)).Methods(http.MethodGet, http.MethodOptions)
 	// number of solves
-	r.HandleFunc("/solves/count", util.MakeHttpHandler(res.count)).Methods(http.MethodGet)
+	r.HandleFunc("/solves/count", util.MakeHttpHandler(res.count)).Methods(http.MethodGet, http.MethodOptions)
 	// get solve by id
-	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.get))).Methods(http.MethodGet)
+	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.get))).Methods(http.MethodGet, http.MethodOptions)
 	// create solve
-	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.create))).Methods(http.MethodPost)
+	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.create))).Methods(http.MethodPost, http.MethodOptions)
 	// batch delete solves
-	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.deleteMany))).Methods(http.MethodDelete)
+	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.deleteMany))).Methods(http.MethodDelete, http.MethodOptions)
 	// solves of user
-	r.HandleFunc("/users/{userId}/solves", authHandler(util.MakeHttpHandler(res.queryForUser))).Methods(http.MethodGet)
+	r.HandleFunc("/users/{userId}/solves", authHandler(util.MakeHttpHandler(res.queryForUser))).Methods(http.MethodGet, http.MethodOptions)
 	// solves of session
-	r.HandleFunc("/sessions/{sessionId}/solves", authHandler(util.MakeHttpHandler(res.queryForSession))).Methods(http.MethodGet)
+	r.HandleFunc("/sessions/{sessionId}/solves", authHandler(util.MakeHttpHandler(res.queryForSession))).Methods(http.MethodGet, http.MethodOptions)
 	// update solve
-	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch)
+	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.update))).Methods(http.MethodPatch, http.MethodOptions)
 	// update many solves
-	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.updateMany))).Methods(http.MethodPatch)
+	r.HandleFunc("/solves", authHandler(util.MakeHttpHandler(res.updateMany))).Methods(http.MethodPatch, http.MethodOptions)
 	// delete solve
-	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete)
+	r.HandleFunc("/solves/{id}", authHandler(util.MakeHttpHandler(res.delete))).Methods(http.MethodDelete, http.MethodOptions)
 }
 
 func (res resource) delete(w http.ResponseWriter, r *http.Request) error {

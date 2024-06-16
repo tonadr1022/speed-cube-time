@@ -106,7 +106,7 @@ func (s service) Register(ctx context.Context, req *entity.RegisterUserPayload) 
 	}
 
 	// create default settings
-	_, err = s.settingsRepo.Create(ctx, &entity.CreateSettingsPayload{UserId: userId, ActiveCubeSessionId: sessionId})
+	_, err = s.settingsRepo.Create(ctx, &entity.CreateSettingsPayload{UserId: userId, ActiveCubeSessionId: sessionId, Theme: "dark"})
 	if err != nil {
 		// delete user since settings creation failed
 		deleteErr := s.repo.Delete(ctx, userId)
