@@ -5,7 +5,6 @@ import Loading from "../components/Loading.tsx";
 import OptionsBar from "../components/timer-page/OptionsBar.tsx";
 import {
   useFetchAllUserSolves,
-  useFetchCubeSessionSolves,
   useFetchCubeSessions,
   useFetchSettings,
 } from "../hooks/useFetch.tsx";
@@ -21,9 +20,6 @@ export default function TimerPage() {
     useFetchCubeSessions();
   const { data: settings, isLoading: settingsLoading } = useFetchSettings();
   const { isLoading: solvesLoading } = useFetchAllUserSolves();
-  const { isLoading: sessionSolvesLoading } = useFetchCubeSessionSolves(
-    settings?.active_cube_session_id || "failed",
-  );
 
   // get and set cube type for session
   const { setCubeType } = useTimerContext();
@@ -36,14 +32,11 @@ export default function TimerPage() {
     }
   }
 
-  return solvesLoading ||
-    cubeSessionsLoading ||
-    settingsLoading ||
-    sessionSolvesLoading ? (
+  return solvesLoading || cubeSessionsLoading || settingsLoading ? (
     <Loading />
   ) : (
     <>
-      <div className="flex h-full flex-col md:flex-row-reverse bg-base text-base">
+      <div className="flex h-full min-h-screen max-h-screen flex-col md:flex-row-reverse bg-base text-base">
         {!focusMode && <RightSideBar />}
         <div className="flex flex-col flex-1">
           <OptionsBar />

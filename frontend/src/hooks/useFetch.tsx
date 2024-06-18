@@ -3,14 +3,16 @@ import { fetchUserSettings, updateUserSettings } from "../api/settings-api";
 import { fetchUserCubeSessions } from "../api/cube-session-api";
 import {
   createSolve,
-  fetchCubeSessionSolves,
+  deleteSolve,
   fetchUserSolves,
+  updateSolve,
 } from "../api/solves-api";
 import {
   Settings,
   SettingsUpdatePayload,
   Solve,
   SolveCreatePayload,
+  SolveUpdatePayload,
 } from "../types/types";
 import { toast } from "react-toastify";
 import { useAuth } from "./useContext";
@@ -18,6 +20,7 @@ import { useAuth } from "./useContext";
 const toastServerError = () => {
   toast.error("ServerError");
 };
+
 export const useFetchCubeSessions = () => {
   const auth = useAuth();
   return useQuery({
@@ -70,13 +73,13 @@ export const useAddSolveMutation = (queryClient: QueryClient) => {
   });
 };
 
-export const useFetchCubeSessionSolves = (sessionId: string) => {
-  return useQuery({
-    queryKey: [`solves${sessionId}`],
-    queryFn: () => fetchCubeSessionSolves(sessionId),
-    staleTime: 60 * 1000,
-  });
-};
+// export const useFetchCubeSessionSolves = (sessionId: string) => {
+//   return useQuery({
+//     queryKey: [`solves${sessionId}`],
+//     queryFn: () => fetchCubeSessionSolves(sessionId),
+//     staleTime: 60 * 1000,
+//   });
+// };
 
 export const useUpdateSetings = (queryClient: QueryClient) => {
   return useMutation({
@@ -91,5 +94,59 @@ export const useUpdateSetings = (queryClient: QueryClient) => {
       return { prevSettings };
     },
     onError: toastServerError,
+  });
+};
+
+export type UpdateSolveArgs = {
+  id: string;
+  solve: Partial<Solve>;
+};
+
+export const useDeleteSolve = (queryClient: QueryClient) => {
+  return useMutation({
+    mutationFn: (id: string) => deleteSolve(id),
+    onMutate: (id: string) => {
+      const prevSolves: Solve[] | undefined = queryClient.getQueryData([
+        "solves",
+      ]);
+      queryClient.setQueryData(
+        ["solves"],
+        prevSolves?.filter((solve) => solve.id !== id),
+      );
+      return { prevSolves };
+    },
+  });
+};
+
+export const useUpdateSolve = (queryClient: QueryClient) => {
+  return useMutation({
+    mutationFn: ({ id, solve }: UpdateSolveArgs) => updateSolve(id, solve),
+    onMutate: (newSolve: UpdateSolveArgs) => {
+      // await queryClient.cancelQueries(["solves"]);
+
+      const prevSolves = queryClient.getQueryData<Solve[]>(["solves"]);
+      const prevSolve = queryClient.getQueryData<Solve>([
+        "solves",
+        newSolve.id,
+      ]);
+
+      // Optimistically update the list of solves
+      if (prevSolves) {
+        queryClient.setQueryData(
+          ["solves"],
+          prevSolves.map((solve) =>
+            solve.id === newSolve.id ? { ...solve, ...newSolve.solve } : solve,
+          ),
+        );
+      }
+
+      // Optimistically update the specific solve
+      queryClient.setQueryData(["solves", newSolve.id], {
+        ...prevSolve,
+        ...newSolve.solve,
+      });
+
+      return { prevSolves, prevSolve };
+    },
   });
 };

@@ -22,6 +22,16 @@ export type SolveCreatePayload = {
   notes: string;
 };
 
+export type SolveUpdatePayload = {
+  duration?: number;
+  scramble?: string;
+  cube_session_id?: string;
+  cube_type?: string;
+  dnf?: boolean;
+  plus_two?: boolean;
+  notes?: string;
+};
+
 export type Settings = {
   id: string;
   theme: string;

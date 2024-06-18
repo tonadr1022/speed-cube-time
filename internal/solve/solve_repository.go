@@ -87,9 +87,6 @@ func (r repository) Update(ctx context.Context, id string, s *entity.UpdateSolve
         FROM (VALUES ($1::uuid,$2::float,$3::text,$4::cube_type,$5::boolean,$6::boolean,$7::text,$8::timestamp))
         AS c(id,duration,scramble,cube_type,dnf,plus_two,notes,updated_at) WHERE c.id::uuid = s.id::uuid
         `
-	fmt.Println("before try access")
-	_ = s.Duration
-	fmt.Println("after try acces")
 	_, err := r.DB.ExecContext(ctx, query, id, s.Duration, s.Scramble, s.CubeType, s.Dnf, s.PlusTwo, s.Notes, time.Now().UTC())
 	return err
 }

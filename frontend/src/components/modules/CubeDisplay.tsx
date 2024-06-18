@@ -37,7 +37,7 @@ const CubeDisplay = ({ elHeight: elHeight }: Props) => {
   }, [scramble, cubeType, display3D, elHeight]);
   // if (loading) return <Loading />;
   return (
-    <div className="relative">
+    <div className="h-full relative">
       <div ref={scrambleRef}></div>
       <div className="absolute top-1 right-2">
         <CubeDisplayToggle setIs3D={setDisplay3D} is3D={display3D} />

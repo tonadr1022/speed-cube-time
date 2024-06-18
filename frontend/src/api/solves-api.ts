@@ -1,4 +1,4 @@
-import { Solve, SolveCreatePayload } from "../types/types";
+import { Solve, SolveCreatePayload, SolveUpdatePayload } from "../types/types";
 import axiosInstance from "./api";
 
 export const fetchAllSolves = async (): Promise<Solve[]> => {
@@ -16,6 +16,14 @@ export const fetchCubeSessionSolves = async (
 export const fetchUserSolves = async (userId: string): Promise<Solve[]> => {
   const res = await axiosInstance.get(`/users/${userId}/solves`);
   return res.data;
+};
+
+export const deleteSolve = async (id: string) => {
+  await axiosInstance.delete(`solves/${id}`);
+};
+
+export const updateSolve = async (id: string, update: SolveUpdatePayload) => {
+  await axiosInstance.patch(`solves/${id}`, update);
 };
 
 export const createSolve = async (

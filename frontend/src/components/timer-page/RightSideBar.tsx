@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import SolvesOverTime from "../modules/SolvesOverTime";
 import ModuleSelect from "../modules/ModuleSelect";
 import StatsModule from "../modules/StatsModule";
-import clsx from "clsx";
 import NoSolves from "../common/NoSolves";
 import CubeDisplay from "../modules/CubeDisplay";
 import { useSettings } from "../../hooks/useContext";
-import {
-  useFetchCubeSessionSolves,
-  useFetchSettings,
-} from "../../hooks/useFetch";
+import { useFetchAllUserSolves, useFetchSettings } from "../../hooks/useFetch";
+import SolveTable from "../modules/SolveTable";
+
+const SolveTableMemoized = React.memo(SolveTable);
 
 const RightSideBar = () => {
   //  const { moduleOne } = useAppSelector((state) => state.setting);
@@ -24,7 +23,7 @@ const RightSideBar = () => {
   useEffect(() => {
     if (!containerRef.current) return;
     const handleResize = () => {
-      setElHeight(containerRef.current!.offsetHeight / moduleCount);
+      setElHeight(containerRef.current!.offsetHeight / (moduleCount + 1));
     };
     // Attach the event listener
     window.addEventListener("resize", handleResize);
@@ -35,8 +34,10 @@ const RightSideBar = () => {
   }, [containerRef, moduleCount]);
 
   const { data: settings } = useFetchSettings();
-  const { data: solves, isLoading: solvesLoading } = useFetchCubeSessionSolves(
-    settings?.active_cube_session_id || "failed",
+  const { data: allSolves, isLoading: solvesLoading } = useFetchAllUserSolves();
+  if (solvesLoading || !allSolves) return <div></div>;
+  const solves = allSolves.filter(
+    (s) => s.cube_session_id === settings?.active_cube_session_id,
   );
 
   const moduleIndices = Array.from(
@@ -47,17 +48,14 @@ const RightSideBar = () => {
   if (!solves) return <div></div>;
   return (
     <div
-      className="h-full hidden md:flex md:flex-col p-2 box-content bg-base-200 w-64"
+      className="bg-base-200 hidden md:flex md:flex-col p-2 box-content bg-base-200 w-64"
       ref={containerRef}
     >
       {moduleIndices.map((i) => {
         return (
           <div
             key={i}
-            className={clsx(
-              "h-1/3 relative group my-2 rounded-lg",
-              modules[i] === "solves" && "overflow-y-auto",
-            )}
+            className="h-1/3 relative group my-2 rounded-lg overflow-y-auto"
           >
             {(() => {
               if (
@@ -73,8 +71,8 @@ const RightSideBar = () => {
                   return <StatsModule solves={solves} />;
                 case "solves":
                   return (
-                    <div className="h-full overflow-y-auto min-h-full">
-                      Solves Table
+                    <div className="h-full overflow-y-auto">
+                      <SolveTableMemoized solves={solves} />
                     </div>
                   );
                 case "cubeDisplay":
@@ -90,7 +88,6 @@ const RightSideBar = () => {
         );
       })}
     </div>
-    // </Suspense>
   );
 };
 
