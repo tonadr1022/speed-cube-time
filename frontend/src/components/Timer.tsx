@@ -4,11 +4,13 @@ import { useAddSolveMutation, useFetchSettings } from "../hooks/useFetch.tsx";
 import DurationDisplay from "../components/timer-page/DurationDisplay.tsx";
 import { useSpaceBarDown, useSpaceBarUp } from "../hooks/timerHooks.ts";
 import { useTimerContext } from "../hooks/useContext.ts";
+import { getScramble } from "../util/getScramble.ts";
+import ScrambleContainer from "./timer-page/ScrambleContainer.tsx";
 
 type TimerState = "Active" | "Ready" | "Stalling" | "Paused" | "Initial";
 
 const Timer = () => {
-  const { scramble, timerCanStart, cubeType } = useTimerContext();
+  const { scramble, setScramble, keybindsActive, cubeType } = useTimerContext();
   const { data: settings } = useFetchSettings();
   const [timerState, setTimerState] = useState<TimerState>("Initial");
   const [duration, setDuration] = useState<number>(0);
@@ -41,8 +43,9 @@ const Timer = () => {
 
       setTimerState("Stalling");
       // set new scramble
+      setScramble(getScramble({ cubeType }));
     } else if (
-      (timerCanStart && timerState === "Initial") ||
+      (keybindsActive && timerState === "Initial") ||
       timerState === "Paused"
     ) {
       // timer at 0, reading to turn red before starting
@@ -71,14 +74,15 @@ const Timer = () => {
     }
   };
 
-  useSpaceBarDown(handleDown, timerCanStart);
+  useSpaceBarDown(handleDown, keybindsActive);
   useSpaceBarUp(handleUp);
   return (
     <div
       onTouchStart={() => handleDown()}
       onTouchEnd={() => handleUp()}
-      className="flex flex-col justify-center items-center text-center flex-1"
+      className="flex flex-col gap-y-4 justify-center items-center text-center flex-1"
     >
+      <ScrambleContainer />
       <DurationDisplay duration={duration} state={timerState} />
     </div>
   );

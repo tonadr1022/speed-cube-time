@@ -3,7 +3,6 @@ import axiosInstance from "./api";
 
 export const fetchUserSettings = async (userId: string): Promise<Settings> => {
   const res = await axiosInstance.get(`/users/${userId}/settings`);
-  console.log(res.data);
   return res.data;
 };
 

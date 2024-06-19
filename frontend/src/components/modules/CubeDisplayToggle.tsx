@@ -16,21 +16,21 @@ const CubeDisplayToggle = ({ is3D, setIs3D }: Props) => {
       <input
         type="radio"
         name="options"
-        data-title="3D"
-        className="join-item btn btn-xs"
-        value="3D"
-        aria-label="3D"
-        checked={is3D}
-        onChange={(e) => handleUpdateSetting(e)}
-      />
-      <input
-        type="radio"
-        name="options"
         data-title="2D"
         className="join-item btn btn-xs"
         value="2D"
         aria-label="2D"
         checked={!is3D}
+        onChange={(e) => handleUpdateSetting(e)}
+      />
+      <input
+        type="radio"
+        name="options"
+        data-title="3D"
+        className="join-item btn btn-xs"
+        value="3D"
+        aria-label="3D"
+        checked={is3D}
         onChange={(e) => handleUpdateSetting(e)}
       />
     </div>

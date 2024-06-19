@@ -46,6 +46,7 @@ const RightSideBar = () => {
   );
 
   if (!solves) return <div></div>;
+
   return (
     <div
       className="bg-base-200 hidden md:flex md:flex-col p-2 box-content bg-base-200 w-64"
@@ -55,7 +56,7 @@ const RightSideBar = () => {
         return (
           <div
             key={i}
-            className="h-1/3 relative group my-2 rounded-lg overflow-y-auto"
+            className="h-1/3 relative group rounded-lg overflow-y-auto"
           >
             {(() => {
               if (

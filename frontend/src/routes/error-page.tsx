@@ -1,16 +1,20 @@
-import { useRouteError } from "react-router-dom";
+import { Link, useRouteError } from "react-router-dom";
 
 export default function ErrorPage() {
   const error = useRouteError();
-  console.error(error);
 
   return (
-    <>
-      <h1>Opps!</h1>
+    <div className="flex flex-col justify-center text-center gap-8">
+      <h2 className="mt-2 text-center font-bold leading-9 tracking-tight  text-2xl">
+        Oops!
+      </h2>
       <p>Sorry, an unexpected error has occurred.</p>
       <p>
-        <i>{error.statusText || error.Message}</i>
+        <i>Error: {error.statusText || error.Message}</i>
       </p>
-    </>
+      <button className="btn w-min self-center">
+        <Link to="/">Home</Link>
+      </button>
+    </div>
   );
 }

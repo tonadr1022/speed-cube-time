@@ -1,8 +1,8 @@
 import { createContext, useState } from "react";
 
 interface TimerContextType {
-  timerCanStart: boolean;
-  setTimerCanStart: (state: boolean) => void;
+  keybindsActive: boolean;
+  setKeybindsActive: (state: boolean) => void;
   scramble: string;
   setScramble: (scramble: string) => void;
   cubeType: string;
@@ -16,14 +16,14 @@ export const TimerContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [timerCanStart, setTimerCanStart] = useState<boolean>(true);
+  const [keybindsActive, setKeybindsActive] = useState<boolean>(true);
   const [scramble, setScramble] = useState<string>("");
   const [cubeType, setCubeType] = useState<string>("333");
   return (
     <TimerContext.Provider
       value={{
-        timerCanStart,
-        setTimerCanStart,
+        keybindsActive,
+        setKeybindsActive,
         scramble,
         setScramble,
         cubeType,

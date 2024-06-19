@@ -3,6 +3,7 @@ import { AuthContext } from "../context/authContext";
 import { SettingsContext } from "../context/settingsContext";
 import { CubeSettingsContext } from "../context/cubeSettingContext";
 import { TimerContext } from "../context/timerContext";
+import { LayoutContext } from "../context/layoutContext";
 
 export const useAuth = () => {
   const auth = useContext(AuthContext);
@@ -24,6 +25,13 @@ export const useSettings = () => {
   const settings = useContext(SettingsContext);
   if (!settings) {
     throw new Error("Can't use settings context outside provider");
+  }
+  return settings;
+};
+export const useLayoutContext = () => {
+  const settings = useContext(LayoutContext);
+  if (!settings) {
+    throw new Error("Can't use layout context outside provider");
   }
   return settings;
 };

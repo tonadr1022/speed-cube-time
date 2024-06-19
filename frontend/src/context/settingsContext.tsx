@@ -1,16 +1,19 @@
-import { createContext, useState } from "react";
+import { SetStateAction, createContext, useState } from "react";
+import usePersistState from "../hooks/usePersistState";
 
 interface SettingsContextType {
   theme: string;
-  setTheme: (theme: string) => void;
+  setTheme: React.Dispatch<SetStateAction<string>>;
   focusMode: boolean;
-  setFocusMode: (focus: boolean) => void;
+  setFocusMode: React.Dispatch<SetStateAction<boolean>>;
   modules: string[];
-  setModules: (modules: string[]) => void;
+  setModules: React.Dispatch<SetStateAction<string[]>>;
   moduleCount: number;
-  setModuleCount: (moduleCount: number) => void;
+  setModuleCount: React.Dispatch<SetStateAction<number>>;
   display3D: boolean;
-  setDisplay3D: (is3D: boolean) => void;
+  setDisplay3D: React.Dispatch<SetStateAction<boolean>>;
+  online: boolean;
+  setOnline: React.Dispatch<SetStateAction<boolean>>;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -22,7 +25,9 @@ export const SettingsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [theme, setTheme] = useState<string>("");
+  // const [theme, setTheme] = useState<string>("dark");
+  const [theme, setTheme] = usePersistState("theme", "light");
+
   const [focusMode, setFocusMode] = useState<boolean>(false);
   const [modules, setModules] = useState<string[]>([
     "solves",
@@ -32,15 +37,18 @@ export const SettingsProvider = ({
     "none",
   ]);
   const [display3D, setDisplay3D] = useState<boolean>(true);
+  const [online, setOnline] = useState<boolean>(true);
   const [moduleCount, setModuleCount] = useState<number>(3);
 
   return (
     <SettingsContext.Provider
       value={{
+        online,
+        setOnline,
         theme,
         setTheme,
-        focusMode: focusMode,
-        setFocusMode: setFocusMode,
+        focusMode,
+        setFocusMode,
         modules,
         setModules,
         display3D,
