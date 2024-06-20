@@ -37,7 +37,7 @@ const SolvesOverTime = ({ solves, elHeight }: Props) => {
   return solves.length ? (
     <ResponsiveContainer
       width={"100%"}
-      height={elHeight || "100%"}
+      // height={elHeight || "100%"}
       className="bg-base-300 rounded-lg"
     >
       <LineChart data={reversed} className="-ml-4">

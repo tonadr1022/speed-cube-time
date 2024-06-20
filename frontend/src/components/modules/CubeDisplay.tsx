@@ -22,9 +22,10 @@ const CubeDisplay = ({ elHeight: elHeight }: Props) => {
       el.visualization = "2D";
     }
     el.style.width = "100%";
-    el.style.height = elHeight
-      ? `${elHeight}px`
-      : `${Math.round(window.innerHeight * 1 * 0.3)}px`;
+    // el.style.height = elHeight
+    //   ? `${elHeight}px`
+    //   : `${Math.floor(window.innerHeight * 1 * 0.3) - 1000}px`;
+
     scrambleRef.current?.appendChild(el);
     const newref = scrambleRef.current;
     return () => {
@@ -33,20 +34,19 @@ const CubeDisplay = ({ elHeight: elHeight }: Props) => {
   }, [scramble, cubeType, display3D, elHeight]);
   // if (loading) return <Loading />;
   return (
-    <div className="h-full relative">
+    <>
       <div ref={scrambleRef}></div>
-      <div className="absolute top-1 right-2">
-        <TextToggle
-          title1="2D"
-          title2="3D"
-          name={`cubedisplay${Math.random()}`}
-          on={display3D}
-          onChange={(e) =>
-            setDisplay3D(e.currentTarget.getAttribute("value") === "3D")
-          }
-        />
-      </div>
-    </div>
+      <TextToggle
+        className="absolute top-1 right-2"
+        title1="2D"
+        title2="3D"
+        name={`cubedisplay${Math.random()}`}
+        on={display3D}
+        onChange={(e) =>
+          setDisplay3D(e.currentTarget.getAttribute("value") === "3D")
+        }
+      />
+    </>
   );
 };
 

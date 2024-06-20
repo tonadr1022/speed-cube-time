@@ -1,13 +1,13 @@
 import LeftSideBar from "./LeftSideBar";
 import TopNavBar from "./TopNavBar";
-import { Suspense, useEffect, useState } from "react";
-import Loading from "../Loading";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useSettings } from "../../hooks/useContext";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
 
 const excludeNavBarPages = ["/login", "/register"];
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { focusMode } = useSettings();
   const [currentURL, setCurrentURL] = useState<string | null>(null);

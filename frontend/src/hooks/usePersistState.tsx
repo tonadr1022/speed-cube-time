@@ -27,6 +27,7 @@ const usePersistState = (storageKey: string, initialState: any) => {
 
   // Create a replacement method that will set the state like normal, but that also saves the new state into the store.
   const setState = (newState: any) => {
+    console.log("new state", newState, storageKey);
     localforage.setItem(storageKey, newState);
     setInternalState(newState);
   };

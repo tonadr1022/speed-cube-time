@@ -13,18 +13,16 @@ import { router } from "./routes";
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SettingsProvider>
-          <TimerContextProvider>
-            <LayoutContextProvider>
-              <RouterProvider router={router} />
-            </LayoutContextProvider>
-          </TimerContextProvider>
-        </SettingsProvider>
-      </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={true} />
-    </QueryClientProvider>
-  </React.StrictMode>,
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <SettingsProvider>
+        <TimerContextProvider>
+          <LayoutContextProvider>
+            <RouterProvider router={router} />
+          </LayoutContextProvider>
+        </TimerContextProvider>
+      </SettingsProvider>
+    </AuthProvider>
+    <ReactQueryDevtools initialIsOpen={true} />
+  </QueryClientProvider>,
 );

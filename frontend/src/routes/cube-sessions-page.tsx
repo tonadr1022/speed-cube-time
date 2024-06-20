@@ -4,29 +4,33 @@ import { useState } from "react";
 import Modal from "../components/Modal.tsx";
 import CreateCubeSessionForm from "../components/cube-session/CreateCubeSessionForm";
 import Loading from "../components/Loading.tsx";
+import PageWrapper from "../components/layout/PageWrapper.tsx";
+import { useAuth } from "../hooks/useContext.ts";
 
 export default function CubeSessionsPage() {
   const [addSessionOpen, setAddSessionOpen] = useState(false);
+  const auth = useAuth();
   const { isLoading, data: cubeSessions } = useQuery({
     queryKey: ["cubeSessions"],
-    queryFn: () => fetchUserCubeSessions(),
+    queryFn: () => fetchUserCubeSessions(auth?.user?.id || ""),
   });
+
   return isLoading ? (
     <Loading />
   ) : (
-    <>
-      <div>Cube Sessions</div>
+    <PageWrapper title="Sessions">
       <button onClick={() => setAddSessionOpen(true)}>Create</button>
+
       {!isLoading && cubeSessions && (
         <ul>
-          {cubeSessions.map((session) => (
-            <li>test {session.name}</li>
+          {cubeSessions.map((session, key) => (
+            <li key={key}>test {session.name}</li>
           ))}
         </ul>
       )}
       <Modal open={addSessionOpen} onClose={() => setAddSessionOpen(false)}>
         <CreateCubeSessionForm onCompleted={() => setAddSessionOpen(false)} />
       </Modal>
-    </>
+    </PageWrapper>
   );
 }

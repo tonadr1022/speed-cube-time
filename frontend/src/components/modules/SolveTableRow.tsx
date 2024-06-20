@@ -20,7 +20,7 @@ const SolveTableRow = ({
   return (
     solve && (
       <div className="w-full flex flex-row py-0.5 items-center" key={solve.id}>
-        <div className=" pl-4 pr-8 w-6 font-bold flex items-center">
+        <div className="pl-4 pr-8 w-6 font-bold flex items-center">
           {solveCount}.
         </div>
         <div
@@ -39,7 +39,7 @@ const SolveTableRow = ({
           <div>
             <button
               className={clsx(
-                "btn btn-xs bg-base-300 border-none hover:bg-base-100 transition-none",
+                "btn btn-xs bg-base-300 border-none hover:bg-warning transition-none",
                 solve.plus_two && "bg-warning text-neutral",
               )}
               onClick={() => onTogglePlusTwo(solve)}
@@ -49,18 +49,16 @@ const SolveTableRow = ({
           </div>
           <div>
             <button
-              className={clsx(
-                "btn btn-xs bg-base-300 border-none hover:bg-base-100 transition-none",
-              )}
+              className="btn btn-xs bg-base-300 border-none hover:bg-error transition-none"
               onClick={() => onDelete(solve.id)}
             >
-              <FaTrash />
+              X
             </button>
           </div>
           <div>
             <button
               className={clsx(
-                "btn btn-xs bg-base-300 border-none hover:bg-base-100",
+                "btn btn-xs bg-base-300 border-none hover:bg-error",
                 solve.dnf && "bg-error text-neutral",
               )}
               onClick={() => onToggleDnf(solve)}

@@ -1,14 +1,24 @@
+import clsx from "clsx";
+
 type Props = {
   title1: string;
   title2: string;
   name: string;
   on: boolean;
+  className?: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-const TextToggle = ({ name, title1, title2, on, onChange }: Props) => {
+const TextToggle = ({
+  name,
+  title1,
+  title2,
+  on,
+  onChange,
+  className,
+}: Props) => {
   return (
-    <div className="join text-center my-1">
+    <div className={clsx("join text-center my-1", className)}>
       <input
         type="radio"
         name={name}

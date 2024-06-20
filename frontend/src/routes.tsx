@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router-dom";
-
 import Root from "./routes/root";
 import ErrorPage from "./routes/error-page";
 import RegisterPage from "./routes/register-page";

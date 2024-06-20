@@ -87,9 +87,7 @@ const CubeSessionSelect = () => {
         </ul>
       </div>
       <Modal open={open} onClose={handleClose}>
-        <CreateCubeSessionForm
-          onCompleted={() => console.log("on completed")}
-        />
+        <CreateCubeSessionForm onCompleted={() => setOpen(false)} />
       </Modal>
     </>
   );

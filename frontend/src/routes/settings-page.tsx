@@ -3,14 +3,13 @@ import SettingRow from "../components/settings/SettingRow";
 import ModuleCountSelect from "../components/settings/ModuleCountSelect";
 import { useState } from "react";
 import ThemeMenu from "../components/settings/ThemeMenu";
+import PageWrapper from "../components/layout/PageWrapper";
 const options = ["Timer", "Appearance", "Data"];
 const SettingsPage = () => {
   const [menuOption, setMenuOption] = useState("Timer");
 
   return (
-    // <div className="flex justify-center w-full">
-    <div className="p-6 max-w-md">
-      <h1 className="text-6xl font-semibold">Settings</h1>
+    <PageWrapper title="Settings">
       <div className="mt-3">
         {options.map((option) => (
           <input
@@ -53,7 +52,7 @@ const SettingsPage = () => {
           </SettingRow>
         )}
       </div>
-    </div>
+    </PageWrapper>
   );
 };
 

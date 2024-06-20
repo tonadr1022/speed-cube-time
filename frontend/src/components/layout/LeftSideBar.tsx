@@ -11,7 +11,7 @@ import {
 import { RiLogoutBoxLine } from "react-icons/ri";
 import { RxTimer } from "react-icons/rx";
 import { useAuth, useLayoutContext } from "../../hooks/useContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 type Props = {
   children: React.ReactNode;
@@ -77,6 +77,7 @@ const LeftSideBarShell = ({ children }: Props) => {
 
 const LeftSideBar = () => {
   const { navCollapsed } = useLayoutContext();
+  const { pathname } = useLocation();
   return (
     <LeftSideBarShell>
       <SideBarItem
@@ -84,6 +85,7 @@ const LeftSideBar = () => {
         icon={<RxTimer />}
         text="Timer"
         href="/"
+        active={pathname === "/"}
       />
       {/* <SideBarItem */}
       {/*   navCollapsed={navCollapsed} */}
@@ -102,12 +104,14 @@ const LeftSideBar = () => {
         icon={<FaListUl />}
         text="Sessions"
         href="/sessions"
+        active={pathname === "/sessions"}
       />
       <SideBarItem
         navCollapsed={navCollapsed}
         icon={<FaGear />}
         text="Settings"
         href="/settings"
+        active={pathname === "/settings"}
       />
     </LeftSideBarShell>
   );
@@ -120,6 +124,7 @@ type SideBarItemProps = {
   text: string;
   href: string;
   navCollapsed: boolean;
+  active: boolean;
 };
 
 export const SideBarItem = ({
@@ -127,6 +132,7 @@ export const SideBarItem = ({
   icon,
   text,
   href,
+  active,
 }: SideBarItemProps) => {
   return (
     <li className="py-2">
@@ -134,6 +140,7 @@ export const SideBarItem = ({
         to={href}
         className={clsx(
           "flex items-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer",
+          active && "opacity-100",
         )}
       >
         {icon}

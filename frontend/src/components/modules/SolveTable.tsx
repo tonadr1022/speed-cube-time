@@ -1,9 +1,9 @@
 import SolveTableRow from "./SolveTableRow";
 import { useCallback } from "react";
 import { Solve } from "../../types/types";
-import NoSolves from "../common/NoSolves";
 import { useDeleteSolve, useUpdateSolve } from "../../hooks/useFetch";
 import { useQueryClient } from "@tanstack/react-query";
+import ReactList from "react-list";
 
 type Props = { solves: Solve[] };
 
@@ -38,21 +38,28 @@ const SolveTable = ({ solves }: Props) => {
 
   const length = solves.length ? solves?.length : 0;
   const counts = Array.from(Array(length).keys(), (i) => length - i);
-  return solves.length ? (
-    <div className="bg-base-200 h-full w-full p-2 flex flex-col rounded-lg">
-      {solves.map((solve, i) => (
-        <SolveTableRow
-          key={i}
-          solveCount={counts[i]}
-          onDelete={onSolveDelete}
-          solve={solve}
-          onTogglePlusTwo={onTogglePlusTwo}
-          onToggleDnf={onToggleDnf}
-        />
-      ))}
+
+  const renderSolveRow = (index: number, key: number | string) => {
+    return (
+      <SolveTableRow
+        solve={solves[index]}
+        onDelete={onSolveDelete}
+        onTogglePlusTwo={onTogglePlusTwo}
+        onToggleDnf={onToggleDnf}
+        solveCount={counts[index]}
+        key={key}
+      />
+    );
+  };
+
+  return (
+    <div className="bg-base-200 h-full overflow-y-auto w-full p-2 flex flex-col rounded-lg">
+      <ReactList
+        itemRenderer={renderSolveRow}
+        length={solves.length}
+        type="uniform"
+      />
     </div>
-  ) : (
-    <NoSolves />
   );
 };
 

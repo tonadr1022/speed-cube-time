@@ -1,4 +1,4 @@
-import { SetStateAction, createContext, useState } from "react";
+import { SetStateAction, createContext } from "react";
 import usePersistState from "../hooks/usePersistState";
 
 interface SettingsContextType {
@@ -27,18 +27,17 @@ export const SettingsProvider = ({
 }) => {
   // const [theme, setTheme] = useState<string>("dark");
   const [theme, setTheme] = usePersistState("theme", "light");
-
-  const [focusMode, setFocusMode] = useState<boolean>(false);
-  const [modules, setModules] = useState<string[]>([
+  const [focusMode, setFocusMode] = usePersistState("focus", false);
+  const [modules, setModules] = usePersistState("modules", [
     "solves",
     "stats",
     "cubeDisplay",
     "timeGraph",
     "none",
   ]);
-  const [display3D, setDisplay3D] = useState<boolean>(true);
-  const [online, setOnline] = useState<boolean>(true);
-  const [moduleCount, setModuleCount] = useState<number>(3);
+  const [display3D, setDisplay3D] = usePersistState("display3D", true);
+  const [online, setOnline] = usePersistState("online", true);
+  const [moduleCount, setModuleCount] = usePersistState("moduleCount", 3);
 
   return (
     <SettingsContext.Provider

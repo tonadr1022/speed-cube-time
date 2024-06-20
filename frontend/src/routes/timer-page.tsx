@@ -47,9 +47,9 @@ export default function TimerPage() {
       if (e.repeat || !keybindsActive || !e.ctrlKey) return;
       e.preventDefault();
       if (e.key === "f") {
-        setFocusMode((prev) => !prev);
+        setFocusMode(!focusMode);
       } else if (e.key === "r") {
-        setRightSidebarOpen((prev) => !prev);
+        setRightSidebarOpen(!rightSidebarOpen);
       }
     };
     document.addEventListener("keydown", handleKeydown);
@@ -68,35 +68,22 @@ export default function TimerPage() {
         {!focusMode && (
           <>
             {rightSidebarOpen && <RightSideBar />}
-            <div className="flex flex-col max-h-full min-h-full">
-              <div className="flex-grow"></div>
-              <button
-                className="mx-1 mb-3 btn btn-sm"
-                onClick={() => setRightSidebarOpen((prev) => !prev)}
-              >
-                {rightSidebarOpen ? "<" : ">"}
-              </button>
-            </div>
+            {/* <div className="flex flex-col max-h-full min-h-full"> */}
+            {/*   <div className="flex-grow"></div> */}
+            {/*   <button */}
+            {/*     className="mx-1 mb-3 btn btn-sm" */}
+            {/*     onClick={() => setRightSidebarOpen((prev) => !prev)} */}
+            {/*   > */}
+            {/*     {rightSidebarOpen ? "<" : ">"} */}
+            {/*   </button> */}
+            {/* </div> */}
           </>
         )}
         <div className="flex flex-col flex-1">
           <TopBar online={online} />
-          {/* <button */}
-          {/*   type="button" */}
-          {/*   onClick={() => auth.logout(() => navigate("/login"))} */}
-          {/* > */}
-          {/*   Logout */}
-          {/* </button> */}
           <Timer />
         </div>
       </div>
-      {/* {solves && ( */}
-      {/*   <> */}
-      {/*     {solves.map((solve) => ( */}
-      {/*       <div>duration: {solve.duration}</div> */}
-      {/*     ))} */}
-      {/*   </> */}
-      {/* )} */}
     </>
   );
 }

@@ -12,7 +12,6 @@ import {
   SettingsUpdatePayload,
   Solve,
   SolveCreatePayload,
-  SolveUpdatePayload,
 } from "../types/types";
 import { toast } from "react-toastify";
 import { useAuth } from "./useContext";
@@ -72,14 +71,6 @@ export const useAddSolveMutation = (queryClient: QueryClient) => {
     },
   });
 };
-
-// export const useFetchCubeSessionSolves = (sessionId: string) => {
-//   return useQuery({
-//     queryKey: [`solves${sessionId}`],
-//     queryFn: () => fetchCubeSessionSolves(sessionId),
-//     staleTime: 60 * 1000,
-//   });
-// };
 
 export const useUpdateSetings = (queryClient: QueryClient) => {
   return useMutation({

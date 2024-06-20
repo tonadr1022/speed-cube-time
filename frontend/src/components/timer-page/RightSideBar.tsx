@@ -8,6 +8,7 @@ import CubeDisplay from "../modules/CubeDisplay";
 import { useSettings } from "../../hooks/useContext";
 import { useFetchAllUserSolves, useFetchSettings } from "../../hooks/useFetch";
 import SolveTable from "../modules/SolveTable";
+import clsx from "clsx";
 
 const SolveTableMemoized = React.memo(SolveTable);
 
@@ -23,7 +24,7 @@ const RightSideBar = () => {
   useEffect(() => {
     if (!containerRef.current) return;
     const handleResize = () => {
-      setElHeight(containerRef.current!.offsetHeight / (moduleCount + 1));
+      setElHeight(containerRef.current!.offsetHeight / moduleCount);
     };
     // Attach the event listener
     window.addEventListener("resize", handleResize);
@@ -56,7 +57,10 @@ const RightSideBar = () => {
         return (
           <div
             key={i}
-            className="h-1/3 relative group rounded-lg overflow-y-auto"
+            className={clsx(
+              "relative group rounded-lg overflow-y-auto",
+              moduleCount === 1 ? "h-full" : `h-1/${moduleCount}`,
+            )}
           >
             {(() => {
               if (
@@ -71,11 +75,7 @@ const RightSideBar = () => {
                 case "stats":
                   return <StatsModule solves={solves} />;
                 case "solves":
-                  return (
-                    <div className="h-full overflow-y-auto">
-                      <SolveTableMemoized solves={solves} />
-                    </div>
-                  );
+                  return <SolveTableMemoized solves={solves} />;
                 case "cubeDisplay":
                   return <CubeDisplay elHeight={elHeight} />;
                 default:

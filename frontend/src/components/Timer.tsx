@@ -31,15 +31,17 @@ const Timer = () => {
       if (timerTimeoutId) clearTimeout(timerTimeoutId);
       if (timerIntervalId) clearInterval(timerIntervalId);
 
-      addSolveMutation.mutate({
-        duration: duration,
-        scramble: scramble,
-        cube_session_id: settings?.active_cube_session_id || "",
-        cube_type: cubeType,
-        dnf: false,
-        plus_two: false,
-        notes: "notes",
-      });
+      for (let i = 0; i < 100; i++) {
+        addSolveMutation.mutate({
+          duration: duration,
+          scramble: scramble,
+          cube_session_id: settings?.active_cube_session_id || "",
+          cube_type: cubeType,
+          dnf: false,
+          plus_two: false,
+          notes: "",
+        });
+      }
 
       setTimerState("Stalling");
       // set new scramble

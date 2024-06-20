@@ -3,6 +3,7 @@ import { CUBE_TYPE_OPTIONS } from "../../util/constants";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createCubeSession } from "../../api/cube-session-api";
 import { CubeSession, CubeSessionCreatePayload } from "../../types/types";
+import { useUpdateSetings, useFetchSettings } from "../../hooks/useFetch";
 
 type Props = {
   onCompleted: () => void;

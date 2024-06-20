@@ -31,12 +31,12 @@ const TopNavBar = () => {
             className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box"
           >
             <TopNavMenuItem icon={<RxTimer />} text="Timer" href="/" />
-            <TopNavMenuItem icon={<FaChartPie />} text="Stats" href="/stats" />
-            <TopNavMenuItem
-              icon={<FaCubesStacked />}
-              text="Solves"
-              href="solves"
-            />
+            {/* <TopNavMenuItem icon={<FaChartPie />} text="Stats" href="/stats" /> */}
+            {/* <TopNavMenuItem */}
+            {/*   icon={<FaCubesStacked />} */}
+            {/*   text="Solves" */}
+            {/*   href="solves" */}
+            {/* /> */}
             <TopNavMenuItem
               icon={<FaListUl />}
               text="Sessions"
