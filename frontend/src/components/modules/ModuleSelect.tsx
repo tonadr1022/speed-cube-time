@@ -21,12 +21,12 @@ const ModuleSelect = ({ moduleNumber }: Props) => {
 
   return (
     <div className="dropdown">
-      <div
+      <button
         tabIndex={0}
-        className="m-1 btn btn-xs bg-primary text-neutral-50 hover:bg-primary-focus"
+        className="m-1 btn btn-xs bg-primary text-primary-content hover:bg-primary"
       >
         {modules[moduleNumber]}
-      </div>
+      </button>
       <ul
         tabIndex={0}
         className="p-0 menu dropdown-content border-base-300 border-2 bg-base-100 rounded-box w-40 max-h-64 overflow-y-auto block"

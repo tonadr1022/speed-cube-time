@@ -11,6 +11,7 @@ import Modal from "../Modal";
 import CreateCubeSessionForm from "../cube-session/CreateCubeSessionForm";
 import { CUBE_TYPE_OPTIONS } from "../../util/constants";
 import { useTimerContext } from "../../hooks/useContext";
+import ReactList from "react-list";
 
 const CubeSessionSelect = () => {
   const [open, setOpen] = useState(false);
@@ -60,6 +61,16 @@ const CubeSessionSelect = () => {
   );
 
   if (!activeSession) return <div></div>;
+  const renderSessionItem = (index: number, key: number | string) => {
+    const session = cubeSessions[index];
+    return (
+      <li value={session.id} key={key} onClick={handleSettingUpdate}>
+        <button className="hover:bg-base-300">
+          {session.name} - {CUBE_TYPE_OPTIONS[session.cube_type]}
+        </button>
+      </li>
+    );
+  };
   return (
     <>
       <div className="dropdown ">
@@ -70,17 +81,22 @@ const CubeSessionSelect = () => {
           tabIndex={0}
           className="p-2 shadow menu dropdown-content bg-base-100 rounded-box w-80 max-h-64 overflow-y-auto block"
         >
-          {cubeSessions.map((session) => (
-            <li
-              value={session.id}
-              key={session.id}
-              onClick={handleSettingUpdate}
-            >
-              <button className="hover:bg-base-300">
-                {session.name} - {CUBE_TYPE_OPTIONS[session.cube_type]}
-              </button>
-            </li>
-          ))}
+          {/* {cubeSessions.map((session) => ( */}
+          {/*   <li */}
+          {/*     value={session.id} */}
+          {/*     key={session.id} */}
+          {/*     onClick={handleSettingUpdate} */}
+          {/*   > */}
+          {/*     <button className="hover:bg-base-300"> */}
+          {/*       {session.name} - {CUBE_TYPE_OPTIONS[session.cube_type]} */}
+          {/*     </button> */}
+          {/*   </li> */}
+          {/* ))} */}
+          <ReactList
+            itemRenderer={renderSessionItem}
+            length={cubeSessions.length}
+            type="uniform"
+          />
           <li value={"add"} onClick={handleClick}>
             <p className="hover:bg-base-300">Add Session</p>
           </li>

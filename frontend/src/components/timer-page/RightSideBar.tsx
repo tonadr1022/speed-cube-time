@@ -82,7 +82,7 @@ const RightSideBar = () => {
                   return null;
               }
             })()}
-            <div className="top-0 left-0 z-50 absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="top-0 left-0 z-50 absolute opacity-0 group-hover:opacity-100">
               <ModuleSelect moduleNumber={i} />
             </div>
           </div>
