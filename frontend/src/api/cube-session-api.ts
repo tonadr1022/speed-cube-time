@@ -7,6 +7,7 @@ export const fetchAllCubeSessions = async () => {
 };
 
 export const fetchUserCubeSessions = async (
+  server: boolean,
   userId: string,
 ): Promise<CubeSession[]> => {
   const res = await axiosInstance.get(`/users/${userId}/sessions`);

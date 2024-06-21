@@ -1,9 +1,15 @@
 import { Solve, SolveCreatePayload, SolveUpdatePayload } from "../types/types";
 import axiosInstance from "./api";
+import {
+  fetchLocalSolves,
+  createLocalSolve,
+} from "../browser_storage/indexedDB";
 
 export const fetchAllSolves = async (): Promise<Solve[]> => {
-  const res = await axiosInstance.get("/solves");
-  return res.data;
+  const res = await fetchLocalSolves();
+  return res;
+  // const res = await axiosInstance.get("/solves");
+  // return res.data;
 };
 
 export const fetchCubeSessionSolves = async (
@@ -13,9 +19,18 @@ export const fetchCubeSessionSolves = async (
   return res.data;
 };
 
-export const fetchUserSolves = async (userId: string): Promise<Solve[]> => {
-  const res = await axiosInstance.get(`/users/${userId}/solves`);
-  return res.data;
+export const fetchUserSolves = async (
+  server: boolean,
+  userId: string,
+): Promise<Solve[]> => {
+  console.log({ server });
+  if (server) {
+    const res = await axiosInstance.get(`/users/${userId}/solves`);
+    return res.data;
+  } else {
+    const res = await fetchLocalSolves();
+    return res;
+  }
 };
 
 export const deleteSolve = async (id: string) => {
@@ -35,10 +50,11 @@ export const createSolve = async (
     return res.data;
   } else {
     try {
-      //
+      const res = await createLocalSolve(solve);
+      return res;
     } catch (e) {
-      console.log(e);
-      return null;
+      console.log("localdb error", e);
+      throw e;
     }
   }
 };

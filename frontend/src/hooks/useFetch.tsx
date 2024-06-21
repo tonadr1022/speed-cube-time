@@ -14,7 +14,7 @@ import {
   SolveCreatePayload,
 } from "../types/types";
 import { toast } from "react-toastify";
-import { useAuth } from "./useContext";
+import { useAuth, useSettings } from "./useContext";
 
 const toastServerError = () => {
   toast.error("ServerError");
@@ -22,18 +22,20 @@ const toastServerError = () => {
 
 export const useFetchCubeSessions = () => {
   const auth = useAuth();
+  const { online } = useSettings();
   return useQuery({
     queryKey: ["cubeSessions"],
-    queryFn: () => fetchUserCubeSessions(auth.user?.id || ""),
+    queryFn: () => fetchUserCubeSessions(online, auth.user?.id || ""),
     staleTime: 60 * 1000,
   });
 };
 
 export const useFetchAllUserSolves = () => {
   const auth = useAuth();
+  const { online } = useSettings();
   return useQuery({
     queryKey: ["solves"],
-    queryFn: () => fetchUserSolves(auth.user?.id || ""),
+    queryFn: () => fetchUserSolves(online, auth.user?.id || ""),
     staleTime: 60 * 1000,
   });
 };
@@ -53,8 +55,9 @@ export type UpdateSettingsArgs = {
 };
 
 export const useAddSolveMutation = (queryClient: QueryClient) => {
+  const { online } = useSettings();
   return useMutation({
-    mutationFn: (solve: SolveCreatePayload) => createSolve(true, solve),
+    mutationFn: (solve: SolveCreatePayload) => createSolve(online, solve),
     // TODO use immmer for large arrays
     onMutate: async (newSolve: SolveCreatePayload) => {
       await queryClient.cancelQueries({ queryKey: ["solves"] });

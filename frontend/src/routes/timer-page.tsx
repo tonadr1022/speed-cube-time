@@ -20,8 +20,6 @@ export default function TimerPage() {
   // need to load scrambow by calling a scramble
   new Scrambow().get(1)[0].scramble_string;
   const { focusMode, setFocusMode } = useSettings();
-  const { user } = useAuth();
-  const online = user ? true : false;
 
   // load all data so components can access cache instead
   const { data: cubeSessions, isLoading: cubeSessionsLoading } =
@@ -80,7 +78,7 @@ export default function TimerPage() {
           </>
         )}
         <div className="flex flex-col flex-1">
-          <TopBar online={online} />
+          <TopBar />
           <Timer />
         </div>
       </div>

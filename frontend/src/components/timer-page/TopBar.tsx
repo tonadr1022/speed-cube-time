@@ -6,6 +6,9 @@ import TextToggle from "../common/TextToggle";
 const TopBar = () => {
   const [open, setOpen] = useState(false);
   const { focusMode, setFocusMode, online, setOnline } = useSettings();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setOnline(e.currentTarget.getAttribute("value") === "online");
+  };
   return (
     <div className="flex flex-row justify-end pt-2 pl-2">
       {!focusMode && open && (
@@ -16,11 +19,9 @@ const TopBar = () => {
           <TextToggle
             title1="browser"
             title2="online"
-            name="online"
+            name="onlineToggle"
             on={online}
-            onChange={(e) =>
-              setOnline(e.currentTarget.getAttribute("value") === "online")
-            }
+            onChange={handleChange}
           />
         </>
       )}

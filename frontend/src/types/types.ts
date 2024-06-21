@@ -10,6 +10,7 @@ export type Solve = {
   created_at: Date;
   updated_at: Date;
   user_id: string;
+  local?: boolean;
 };
 
 export type SolveCreatePayload = {
@@ -20,6 +21,8 @@ export type SolveCreatePayload = {
   dnf: boolean;
   plus_two: boolean;
   notes: string;
+  id?: string;
+  local?: boolean;
 };
 
 export type SolveUpdatePayload = {
