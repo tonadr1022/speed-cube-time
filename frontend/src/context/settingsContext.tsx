@@ -1,6 +1,5 @@
 import { SetStateAction, createContext } from "react";
 import usePersistState from "../hooks/usePersistState";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface SettingsContextType {
   theme: string;
@@ -13,8 +12,6 @@ interface SettingsContextType {
   setModuleCount: React.Dispatch<SetStateAction<number>>;
   display3D: boolean;
   setDisplay3D: React.Dispatch<SetStateAction<boolean>>;
-  online: boolean;
-  setOnline: React.Dispatch<SetStateAction<boolean>>;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -37,19 +34,11 @@ export const SettingsProvider = ({
     "none",
   ]);
   const [display3D, setDisplay3D] = usePersistState("display3D", true);
-  const queryClient = useQueryClient();
-  const [online, setOnline] = usePersistState("online", true, () => {
-    queryClient.invalidateQueries({ queryKey: ["solves"] });
-    queryClient.invalidateQueries({ queryKey: ["cubeSessions"] });
-    queryClient.invalidateQueries({ queryKey: ["settings"] });
-  });
   const [moduleCount, setModuleCount] = usePersistState("moduleCount", 3);
 
   return (
     <SettingsContext.Provider
       value={{
-        online,
-        setOnline,
         theme,
         setTheme,
         focusMode,

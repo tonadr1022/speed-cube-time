@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useSettings } from "../../hooks/useContext";
+import { useOnlineContext, useSettings } from "../../hooks/useContext";
 import CubeSessionSelect from "./CubeSessionSelect";
 import TextToggle from "../common/TextToggle";
 
 const TopBar = () => {
   const [open, setOpen] = useState(false);
-  const { focusMode, setFocusMode, online, setOnline } = useSettings();
+  const { focusMode, setFocusMode } = useSettings();
+  const { online, setOnline } = useOnlineContext();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOnline(e.currentTarget.getAttribute("value") === "online");
   };

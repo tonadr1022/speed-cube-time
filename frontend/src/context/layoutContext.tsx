@@ -7,7 +7,9 @@ interface LayoutContextType {
   setNavCollapsed: React.Dispatch<SetStateAction<boolean>>;
 }
 
-export const LayoutContext = createContext<LayoutContextType | null>(null);
+export const LayoutContext = createContext<LayoutContextType | undefined>(
+  undefined,
+);
 
 export const LayoutContextProvider = ({
   children,

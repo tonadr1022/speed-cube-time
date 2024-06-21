@@ -14,7 +14,7 @@ import {
   SolveCreatePayload,
 } from "../types/types";
 import { toast } from "react-toastify";
-import { useAuth, useSettings } from "./useContext";
+import { useAuth, useOnlineContext } from "./useContext";
 
 const toastServerError = () => {
   toast.error("ServerError");
@@ -22,7 +22,7 @@ const toastServerError = () => {
 
 export const useFetchCubeSessions = () => {
   const auth = useAuth();
-  const { online } = useSettings();
+  const { online } = useOnlineContext();
   return useQuery({
     queryKey: ["cubeSessions"],
     queryFn: () => fetchUserCubeSessions(online, auth.user?.id || ""),
@@ -32,7 +32,7 @@ export const useFetchCubeSessions = () => {
 
 export const useFetchAllUserSolves = () => {
   const auth = useAuth();
-  const { online } = useSettings();
+  const { online } = useOnlineContext();
   return useQuery({
     queryKey: ["solves"],
     queryFn: () => fetchUserSolves(online, auth.user?.id || ""),
@@ -55,7 +55,7 @@ export type UpdateSettingsArgs = {
 };
 
 export const useAddSolveMutation = (queryClient: QueryClient) => {
-  const { online } = useSettings();
+  const { online } = useOnlineContext();
   return useMutation({
     mutationFn: (solve: SolveCreatePayload) => createSolve(online, solve),
     // TODO use immmer for large arrays

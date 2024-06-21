@@ -9,7 +9,9 @@ interface TimerContextType {
   setCubeType: (cubeType: string) => void;
 }
 
-export const TimerContext = createContext<TimerContextType | null>(null);
+export const TimerContext = createContext<TimerContextType | undefined>(
+  undefined,
+);
 
 export const TimerContextProvider = ({
   children,
