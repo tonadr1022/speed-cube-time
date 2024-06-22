@@ -12,7 +12,6 @@ const usePersistState = (
   callback?: (newState: any) => void,
 ) => {
   const [state, setInternalState] = useState(initialState);
-  console.log({ state, storageKey });
 
   // Create a replacement method that will set the state like normal, but that also saves the new state into the store.
   const setState = async (newState: any) => {

@@ -106,13 +106,10 @@ export const updateLocalSettings = async (
   return withDB<void>("settings", "readwrite", (store) => {
     return new Promise<void>((resolve, reject) => {
       const getRequest = store.getAll();
-
       getRequest.onsuccess = (event) => {
         const settingsArray = event.target.result;
         let updateRequest: IDBRequest;
-
         if (settingsArray && settingsArray.length > 0) {
-          // Update existing settings object
           const existingSettings = settingsArray[0];
           for (const key in settings) {
             if (Object.prototype.hasOwnProperty.call(settings, key)) {
@@ -121,12 +118,11 @@ export const updateLocalSettings = async (
           }
           updateRequest = store.put(existingSettings);
         } else {
-          // Add new settings object
+          console.log("add new settings", settings);
           updateRequest = store.add(settings as Settings);
         }
 
         updateRequest.onsuccess = () => {
-          console.log("User settings updated successfully");
           resolve();
         };
 
@@ -143,7 +139,6 @@ export const updateLocalSettings = async (
 };
 
 export const updateLocalSolve = async (id: string, solve: Partial<Solve>) => {
-  console.log("update local solve", id, solve);
   return withDB<void>("solves", "readwrite", (store) => {
     return new Promise<void>((resolve, reject) => {
       const getRequest = store.get(id);
@@ -155,17 +150,14 @@ export const updateLocalSolve = async (id: string, solve: Partial<Solve>) => {
               existing[key] = solve[key];
             }
           }
-          console.log(existing, "existing");
           const updateRequest = store.put(existing);
           updateRequest.onsuccess = () => {
-            console.log("updated solve");
             resolve();
           };
           updateRequest.onerror = () => {
             reject("Failed to update solve");
           };
         } else {
-          console.log("solve with id doesn't exist", id);
           reject("solve doesn't exist");
         }
       };

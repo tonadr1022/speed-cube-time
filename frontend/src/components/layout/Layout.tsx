@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { useSettings } from "../../hooks/useContext";
 import { useLocation } from "react-router-dom";
 import { useTheme } from "../../hooks/useTheme";
+import FooterNav from "./FooterNav";
 
 const excludeNavBarPages = ["/login", "/register"];
 
@@ -24,7 +25,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className={clsx("flex", { "h-screen": currentURL === "/" })}>
+      <div
+        className={clsx("flex h-screen", { "h-screen": currentURL === "/" })}
+      >
         {showNav && (
           <div className="hidden sm:flex h-screen sticky top-0 left-0">
             <LeftSideBar />
@@ -32,11 +35,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         )}
         <div className="w-full flex flex-col h-full">
           {showNav && (
-            <div className="sm:hidden z-50 sticky top-0 left-0">
-              <TopNavBar />
-            </div>
+            <TopNavBar className="sm:hidden z-50 sticky top-0 left-0" />
           )}
-          <div className="h-full">{children}</div>
+          <div className="flex flex-col h-full w-full">
+            <div className="flex-1">{children}</div>
+            <FooterNav className="md:hidden" />
+          </div>
         </div>
       </div>
     </>

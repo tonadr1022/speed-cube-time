@@ -6,13 +6,16 @@ import StatsModule from "../modules/StatsModule";
 import NoSolves from "../common/NoSolves";
 import CubeDisplay from "../modules/CubeDisplay";
 import { useSettings } from "../../hooks/useContext";
-import { useFetchAllUserSolves, useFetchSettings } from "../../hooks/useFetch";
 import SolveTable from "../modules/SolveTable";
 import clsx from "clsx";
+import { Solve } from "../../types/types";
 
 const SolveTableMemoized = React.memo(SolveTable);
+type Props = {
+  solves: Solve[];
+};
 
-const RightSideBar = () => {
+const RightSideBar = ({ solves }: Props) => {
   //  const { moduleOne } = useAppSelector((state) => state.setting);
   const containerRef = useRef<HTMLDivElement>(null);
   const { modules, moduleCount } = useSettings();
@@ -34,24 +37,15 @@ const RightSideBar = () => {
     };
   }, [containerRef, moduleCount]);
 
-  const { data: settings } = useFetchSettings();
-  const { data: allSolves, isLoading: solvesLoading } = useFetchAllUserSolves();
-  if (solvesLoading || !allSolves) return <div></div>;
-  const solves = allSolves.filter(
-    (s) => s.cube_session_id === settings?.active_cube_session_id,
-  );
-
   const moduleIndices = Array.from(
     { length: moduleCount },
     (_, index) => index,
   );
 
-  if (!solves) return <div></div>;
-
   return (
     <div
       className={clsx(
-        "bg-base-200 hidden md:flex md:flex-col box-content w-64 h-full justify-items-stretch items-stretch content-stretch",
+        "bg-base-200 hidden md:flex md:flex-col box-content w-64 h-screen justify-items-stretch items-stretch content-stretch",
       )}
       ref={containerRef}
     >

@@ -1,5 +1,7 @@
 import {
+  useAuth,
   useLayoutContext,
+  useOnlineContext,
   useSettings,
   useTimerContext,
 } from "../hooks/useContext";
@@ -16,6 +18,12 @@ import RightSideBar from "../components/timer-page/RightSideBar.tsx";
 import { useEffect } from "react";
 
 export default function TimerPage() {
+  const auth = useAuth();
+  const { online, setOnline } = useOnlineContext();
+  if (online && (!auth.user || !window.navigator.onLine)) {
+    setOnline(false);
+  }
+
   // need to load scrambow by calling a scramble
   new Scrambow().get(1)[0].scramble_string;
   const { focusMode, setFocusMode } = useSettings();
@@ -24,7 +32,9 @@ export default function TimerPage() {
   const { data: cubeSessions, isLoading: cubeSessionsLoading } =
     useFetchCubeSessions();
   const { data: settings, isLoading: settingsLoading } = useFetchSettings();
-  const { isLoading: solvesLoading } = useFetchAllUserSolves();
+  const { data: solveData, isLoading: solvesLoading } = useFetchAllUserSolves();
+
+  const { setRightSidebarOpen, rightSidebarOpen } = useLayoutContext();
 
   // get and set cube type for session
   const { setCubeType } = useTimerContext();
@@ -32,7 +42,7 @@ export default function TimerPage() {
     const activeSession = cubeSessions.find(
       (s) => s.id == settings.active_cube_session_id,
     );
-    if (activeSession && activeSession.cube_type) {
+    if (activeSession) {
       setCubeType(activeSession.cube_type);
     }
   }
@@ -56,14 +66,21 @@ export default function TimerPage() {
     };
   }); // Dependency array ensures effect runs only when keybindsActive changes
 
-  const { setRightSidebarOpen, rightSidebarOpen } = useLayoutContext();
+  if (solvesLoading) return <Loading />;
+  const solves = solveData || [];
+  const filteredSolves = solves.filter(
+    (s) => s.cube_session_id === settings?.active_cube_session_id,
+  );
+
   return solvesLoading || cubeSessionsLoading || settingsLoading ? (
     <Loading />
   ) : (
     <>
       <div className="flex h-full flex-col md:flex-row-reverse bg-base text-base">
-        {!focusMode && <>{rightSidebarOpen && <RightSideBar />}</>}
-        <div className="flex flex-col flex-1">
+        {!focusMode && (
+          <>{rightSidebarOpen && <RightSideBar solves={filteredSolves} />}</>
+        )}
+        <div className="flex flex-col h-full w-full flex-1">
           <TopBar />
           <Timer />
         </div>

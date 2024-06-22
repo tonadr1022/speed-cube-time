@@ -1,13 +1,11 @@
 import { formatTime } from "../../util/time";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
-import { useTimerContext } from "../../hooks/useContext";
 interface Props {
   duration: number;
   state: string;
 }
 const DurationDisplay = ({ duration, state }: Props) => {
-  const { cubeType } = useTimerContext();
   const digits = state === "Active" ? 1 : 2;
   return (
     <div>
@@ -22,7 +20,6 @@ const DurationDisplay = ({ duration, state }: Props) => {
       >
         {formatTime(duration ? duration : 0, digits)}
       </h2>
-      <div>{cubeType}</div>
     </div>
   );
 };

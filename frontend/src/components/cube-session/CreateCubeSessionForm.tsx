@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { CUBE_TYPE_OPTIONS } from "../../util/constants";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCubeSession } from "../../api/cube-session-api";
-import { CubeSession, CubeSessionCreatePayload } from "../../types/types";
-import { useUpdateSetings, useFetchSettings } from "../../hooks/useFetch";
+import { useQueryClient } from "@tanstack/react-query";
+import { CubeSessionCreatePayload } from "../../types/types";
+import { useCreateCubeSession } from "../../hooks/useFetch";
 
 type Props = {
   onCompleted: () => void;
@@ -17,31 +16,12 @@ const initialFormState: CubeSessionCreatePayload = {
 const CreateCubeSessionForm = ({ onCompleted }: Props) => {
   const [data, setData] = useState(initialFormState);
   const queryClient = useQueryClient();
-  const createSessionMutation = useMutation({
-    mutationFn: (session: CubeSessionCreatePayload) =>
-      createCubeSession(session, false),
-    onMutate: async (newSession: CubeSessionCreatePayload) => {
-      await queryClient.cancelQueries({ queryKey: ["cubeSessions"] });
-      const prevSessions = queryClient.getQueryData(["cubeSessions"]);
-      queryClient.setQueryData(["cubeSessions"], (old: CubeSession[]) => [
-        ...old,
-        newSession,
-      ]);
-      return { prevSessions };
-    },
-    onError: (_, __, context) => {
-      queryClient.setQueryData(["cubeSessions"], context?.prevSessions);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["cubeSessions"] });
-      onCompleted();
-    },
-  });
+  const createSessionMutation = useCreateCubeSession(queryClient);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     createSessionMutation.mutate(data);
+    onCompleted();
 
     // createCubeSession(data);
     // updateSetting(setting!, {

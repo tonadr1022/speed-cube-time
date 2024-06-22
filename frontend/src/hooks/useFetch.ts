@@ -1,6 +1,9 @@
 import { useMutation, useQuery, QueryClient } from "@tanstack/react-query";
 import { fetchUserSettings, updateUserSettings } from "../api/settings-api";
-import { fetchUserCubeSessions } from "../api/cube-session-api";
+import {
+  createCubeSession,
+  fetchUserCubeSessions,
+} from "../api/cube-session-api";
 import {
   createSolve,
   deleteSolve,
@@ -8,6 +11,8 @@ import {
   updateSolve,
 } from "../api/solves-api";
 import {
+  CubeSession,
+  CubeSessionCreatePayload,
   Settings,
   SettingsUpdatePayload,
   Solve,
@@ -146,6 +151,29 @@ export const useUpdateSolve = (queryClient: QueryClient) => {
       });
 
       return { prevSolves, prevSolve };
+    },
+  });
+};
+
+export const useCreateCubeSession = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
+  return useMutation({
+    mutationFn: (session: CubeSessionCreatePayload) =>
+      createCubeSession(session, online),
+    onMutate: async (newSession: CubeSessionCreatePayload) => {
+      await queryClient.cancelQueries({ queryKey: ["cubeSessions"] });
+      const prevSessions = queryClient.getQueryData(["cubeSessions"]);
+      queryClient.setQueryData(["cubeSessions"], (old: CubeSession[]) => [
+        ...old,
+        newSession,
+      ]);
+      return { prevSessions };
+    },
+    onError: (_, __, context) => {
+      queryClient.setQueryData(["cubeSessions"], context?.prevSessions);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cubeSessions"] });
     },
   });
 };

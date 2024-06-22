@@ -26,7 +26,10 @@ export const fetchUserSettings = async (
         updated_at: new Date(),
       };
       await updateLocalSettings(initialSettings);
-      return initialSettings;
+      console.log("mc");
+      return new Promise<Settings>(() => {
+        return initialSettings;
+      });
     }
     return res;
   }

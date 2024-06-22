@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useOnlineContext, useSettings } from "../../hooks/useContext";
+import { useAuth, useOnlineContext, useSettings } from "../../hooks/useContext";
 import CubeSessionSelect from "./CubeSessionSelect";
 import TextToggle from "../common/TextToggle";
 
@@ -7,9 +7,20 @@ const TopBar = () => {
   const [open, setOpen] = useState(false);
   const { focusMode, setFocusMode } = useSettings();
   const { online, setOnline } = useOnlineContext();
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setOnline(e.currentTarget.getAttribute("value") === "online");
+  const { user } = useAuth();
+  const handleOnlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newOnline = e.currentTarget.getAttribute("value") === "online";
+    if (newOnline && !window.navigator.onLine) {
+      alert(
+        "You are not connected to the internet. Cannot access online data.",
+      );
+    } else if (newOnline && !user?.id) {
+      alert("Please register to save solves online");
+    } else {
+      setOnline(e.currentTarget.getAttribute("value") === "online");
+    }
   };
+
   return (
     <div className="flex flex-row justify-end pt-2 pl-2">
       {!focusMode && open && (
@@ -22,7 +33,7 @@ const TopBar = () => {
             title2="online"
             name="onlineToggle"
             on={online}
-            onChange={handleChange}
+            onChange={handleOnlineChange}
           />
         </>
       )}

@@ -1,16 +1,18 @@
 import clsx from "clsx";
 import React from "react";
 import {
-  FaChartPie,
   FaChevronLeft,
   FaChevronRight,
-  FaCubesStacked,
   FaGear,
   FaListUl,
 } from "react-icons/fa6";
-import { RiLogoutBoxLine } from "react-icons/ri";
+import { RiLogoutBoxLine, RiLoginBoxLine } from "react-icons/ri";
 import { RxTimer } from "react-icons/rx";
-import { useAuth, useLayoutContext } from "../../hooks/useContext";
+import {
+  useAuth,
+  useLayoutContext,
+  useOnlineContext,
+} from "../../hooks/useContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
 type Props = {
@@ -20,6 +22,7 @@ type Props = {
 const LeftSideBarShell = ({ children }: Props) => {
   const { navCollapsed, setNavCollapsed } = useLayoutContext();
   const auth = useAuth();
+  const { online } = useOnlineContext();
   const navigate = useNavigate();
   return (
     <nav
@@ -51,12 +54,14 @@ const LeftSideBarShell = ({ children }: Props) => {
         {children}
       </ul>
       <div className="flex justify-center mb-10 gap-y-8">
-        <button
-          className="absolute bottom-24 bg-base-300 outline-none btn btn-sm btn-neutral-focus p-1 m-0 rounded-full"
-          onClick={() => auth.logout(() => navigate("/login"))}
-        >
-          <RiLogoutBoxLine className="w-6 h-6" />
-        </button>
+        {auth.user && online && (
+          <button
+            className="absolute bottom-24 bg-base-300 outline-none btn btn-sm btn-neutral-focus p-1 m-0 rounded-full"
+            onClick={() => auth.logout(() => navigate("/login"))}
+          >
+            <RiLogoutBoxLine className="w-6 h-6" />
+          </button>
+        )}
         <button
           className="absolute bottom-12 h-8"
           onClick={() => setNavCollapsed(!navCollapsed)}

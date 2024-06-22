@@ -25,7 +25,6 @@ export const fetchUserSolves = async (
   server: boolean,
   userId: string,
 ): Promise<Solve[]> => {
-  console.log({ server });
   if (server) {
     const res = await axiosInstance.get(`/users/${userId}/solves`);
     return res.data;
@@ -48,7 +47,6 @@ export const updateSolve = async (
   id: string,
   update: SolveUpdatePayload,
 ) => {
-  console.log("here");
   if (server) {
     await axiosInstance.patch(`solves/${id}`, update);
   } else {
