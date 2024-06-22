@@ -62,7 +62,7 @@ export default function TimerPage() {
     <Loading />
   ) : (
     <>
-      <div className="flex h-full min-h-screen max-h-screen flex-col md:flex-row-reverse bg-base text-base">
+      <div className="flex h-full flex-col md:flex-row-reverse bg-base text-base">
         {!focusMode && (
           <>
             {rightSidebarOpen && <RightSideBar />}

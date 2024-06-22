@@ -50,7 +50,9 @@ const RightSideBar = () => {
 
   return (
     <div
-      className="bg-base-200 hidden md:flex md:flex-col p-2 box-content bg-base-200 w-64"
+      className={clsx(
+        "bg-base-200 hidden md:flex md:flex-col box-content w-64 h-full justify-items-stretch items-stretch content-stretch",
+      )}
       ref={containerRef}
     >
       {moduleIndices.map((i) => {
@@ -58,8 +60,8 @@ const RightSideBar = () => {
           <div
             key={i}
             className={clsx(
-              "relative group rounded-lg overflow-y-auto",
-              moduleCount === 1 ? "h-full" : `h-1/${moduleCount}`,
+              "relative group rounded-lg overflow-y-auto h-full self-stretch",
+              `h-1/${moduleCount}`,
             )}
           >
             {(() => {
@@ -69,6 +71,7 @@ const RightSideBar = () => {
                 solves.length <= 0
               )
                 return <NoSolves />;
+
               switch (modules[i]) {
                 case "timeGraph":
                   return <SolvesOverTime elHeight={elHeight} solves={solves} />;
