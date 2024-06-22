@@ -42,9 +42,10 @@ export const useFetchAllUserSolves = () => {
 
 export const useFetchSettings = () => {
   const auth = useAuth();
+  const { online } = useOnlineContext();
   return useQuery({
     queryKey: ["settings"],
-    queryFn: () => fetchUserSettings(auth.user?.id || ""),
+    queryFn: () => fetchUserSettings(online, auth.user?.id || ""),
     staleTime: 60 * 1000,
   });
 };
