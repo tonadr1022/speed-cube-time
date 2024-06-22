@@ -51,9 +51,9 @@ export type CubeSession = {
   id: string;
   name: string;
   cube_type: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
+  created_at: Date;
+  updated_at: Date;
+  user_id?: string;
 };
 
 export type CubeSessionCreatePayload = {

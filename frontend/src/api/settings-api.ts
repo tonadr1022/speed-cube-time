@@ -1,4 +1,5 @@
 import {
+  fetchLocalCubeSessions,
   fetchLocalSettings,
   updateLocalSettings,
 } from "../browser_storage/indexedDB";
@@ -16,14 +17,16 @@ export const fetchUserSettings = async (
   } else {
     const res = await fetchLocalSettings();
     if (!res) {
+      const cubeSessions = await fetchLocalCubeSessions();
       const initialSettings: Settings = {
         id: uuid(),
         theme: "dark",
-        active_cube_session_id: "todo",
+        active_cube_session_id: cubeSessions[0].id,
         created_at: new Date(),
         updated_at: new Date(),
       };
       await updateLocalSettings(initialSettings);
+      return initialSettings;
     }
     return res;
   }

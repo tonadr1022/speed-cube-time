@@ -1,4 +1,10 @@
-import { Settings, Solve, SolveCreatePayload } from "../types/types";
+import {
+  CubeSession,
+  CubeSessionCreatePayload,
+  Settings,
+  Solve,
+  SolveCreatePayload,
+} from "../types/types";
 import { v4 as uuid } from "uuid";
 
 const openDB = async () => {
@@ -7,7 +13,6 @@ const openDB = async () => {
       const req = indexedDB.open("timerDB", 1);
 
       req.onupgradeneeded = (event) => {
-        console.log("openin db");
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains("solves")) {
           const store = db.createObjectStore("solves", {
@@ -18,8 +23,12 @@ const openDB = async () => {
         }
 
         if (!db.objectStoreNames.contains("settings")) {
-          console.log("no settings store, creating");
           db.createObjectStore("settings", {
+            keyPath: "id",
+          });
+        }
+        if (!db.objectStoreNames.contains("cubeSessions")) {
+          db.createObjectStore("cubeSessions", {
             keyPath: "id",
           });
         }
@@ -66,6 +75,12 @@ const withDB = async <T>(
 
 export const fetchLocalSolves = async (): Promise<Solve[]> => {
   return withDB<Solve[]>("solves", "readonly", (store) => store.getAll());
+};
+
+export const fetchLocalCubeSessions = async (): Promise<CubeSession[]> => {
+  return withDB<CubeSession[]>("cubeSessions", "readonly", (store) =>
+    store.getAll(),
+  );
 };
 
 export const fetchLocalSettings = async (): Promise<Settings | undefined> => {
@@ -127,9 +142,58 @@ export const updateLocalSettings = async (
   });
 };
 
+export const updateLocalSolve = async (id: string, solve: Partial<Solve>) => {
+  console.log("update local solve", id, solve);
+  return withDB<void>("solves", "readwrite", (store) => {
+    return new Promise<void>((resolve, reject) => {
+      const getRequest = store.get(id);
+      getRequest.onsuccess = (event) => {
+        const existing = event.target.result;
+        if (existing) {
+          for (const key in existing) {
+            if (Object.prototype.hasOwnProperty.call(solve, key)) {
+              existing[key] = solve[key];
+            }
+          }
+          console.log(existing, "existing");
+          const updateRequest = store.put(existing);
+          updateRequest.onsuccess = () => {
+            console.log("updated solve");
+            resolve();
+          };
+          updateRequest.onerror = () => {
+            reject("Failed to update solve");
+          };
+        } else {
+          console.log("solve with id doesn't exist", id);
+          reject("solve doesn't exist");
+        }
+      };
+      getRequest.onerror = () => {
+        reject("Error fetching existing solve");
+      };
+    });
+  });
+};
+
 export const createLocalSettings = async (settings: Settings) => {
   return withDB<Settings>("settings", "readwrite", (store) => {
     return store.add(settings);
+  });
+};
+
+export const createLocalCubeSession = async (
+  cubeSession: CubeSessionCreatePayload,
+) => {
+  const date = new Date();
+  const session: CubeSession = {
+    ...cubeSession,
+    id: uuid(),
+    created_at: date,
+    updated_at: date,
+  };
+  return withDB<CubeSession>("cubeSessions", "readwrite", (store) => {
+    return store.add(session);
   });
 };
 
@@ -138,5 +202,11 @@ export const createLocalSolve = async (solve: SolveCreatePayload) => {
   return withDB<Solve>("solves", "readwrite", (store) => {
     const request = store.add(solve);
     return request;
+  });
+};
+
+export const deleteLocalSolve = async (id: string) => {
+  return withDB<Solve>("solves", "readwrite", (store) => {
+    return store.delete(id);
   });
 };

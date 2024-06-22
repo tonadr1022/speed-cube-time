@@ -7,12 +7,11 @@ import Timer from "../components/Timer.tsx";
 import { Scrambow } from "scrambow";
 import Loading from "../components/Loading.tsx";
 import TopBar from "../components/timer-page/TopBar.tsx";
-import { useAuth } from "../hooks/useContext.ts";
 import {
   useFetchAllUserSolves,
   useFetchCubeSessions,
   useFetchSettings,
-} from "../hooks/useFetch.tsx";
+} from "../hooks/useFetch.ts";
 import RightSideBar from "../components/timer-page/RightSideBar.tsx";
 import { useEffect } from "react";
 
@@ -63,20 +62,7 @@ export default function TimerPage() {
   ) : (
     <>
       <div className="flex h-full flex-col md:flex-row-reverse bg-base text-base">
-        {!focusMode && (
-          <>
-            {rightSidebarOpen && <RightSideBar />}
-            {/* <div className="flex flex-col max-h-full min-h-full"> */}
-            {/*   <div className="flex-grow"></div> */}
-            {/*   <button */}
-            {/*     className="mx-1 mb-3 btn btn-sm" */}
-            {/*     onClick={() => setRightSidebarOpen((prev) => !prev)} */}
-            {/*   > */}
-            {/*     {rightSidebarOpen ? "<" : ">"} */}
-            {/*   </button> */}
-            {/* </div> */}
-          </>
-        )}
+        {!focusMode && <>{rightSidebarOpen && <RightSideBar />}</>}
         <div className="flex flex-col flex-1">
           <TopBar />
           <Timer />

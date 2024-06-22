@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useAddSolveMutation, useFetchSettings } from "../hooks/useFetch.tsx";
+import { useAddSolveMutation, useFetchSettings } from "../hooks/useFetch.ts";
 import DurationDisplay from "../components/timer-page/DurationDisplay.tsx";
 import { useSpaceBarDown, useSpaceBarUp } from "../hooks/timerHooks.ts";
 import { useTimerContext } from "../hooks/useContext.ts";
@@ -31,7 +31,7 @@ const Timer = () => {
       if (timerTimeoutId) clearTimeout(timerTimeoutId);
       if (timerIntervalId) clearInterval(timerIntervalId);
 
-      // for (let i = 0; i < 100; i++) {
+      // for (let i = 0; i < 10; i++) {
       addSolveMutation.mutate({
         duration: duration,
         scramble: scramble,

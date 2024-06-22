@@ -77,9 +77,10 @@ export const useAddSolveMutation = (queryClient: QueryClient) => {
 };
 
 export const useUpdateSetings = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
     mutationFn: ({ id, settings }: UpdateSettingsArgs) =>
-      updateUserSettings(id, settings),
+      updateUserSettings(online, id, settings),
     onMutate: (newSettings: UpdateSettingsArgs) => {
       const prevSettings = queryClient.getQueryData(["settings"]);
       queryClient.setQueryData(["settings"], (old: Settings) => ({
@@ -98,8 +99,9 @@ export type UpdateSolveArgs = {
 };
 
 export const useDeleteSolve = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
-    mutationFn: (id: string) => deleteSolve(id),
+    mutationFn: (id: string) => deleteSolve(online, id),
     onMutate: (id: string) => {
       const prevSolves: Solve[] | undefined = queryClient.getQueryData([
         "solves",
@@ -114,8 +116,10 @@ export const useDeleteSolve = (queryClient: QueryClient) => {
 };
 
 export const useUpdateSolve = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
-    mutationFn: ({ id, solve }: UpdateSolveArgs) => updateSolve(id, solve),
+    mutationFn: ({ id, solve }: UpdateSolveArgs) =>
+      updateSolve(online, id, solve),
     onMutate: (newSolve: UpdateSolveArgs) => {
       // await queryClient.cancelQueries(["solves"]);
 

@@ -52,6 +52,7 @@ const CubeSessionSelect = () => {
     }
     handleDropdownOptionClick();
   };
+  console.log(cubeSessions, settings, "s");
 
   if (settingsLoading || cubeSessionsLoading || !cubeSessions || !settings)
     return <Loading />;
