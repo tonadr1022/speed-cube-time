@@ -1,7 +1,6 @@
 import axios from "axios";
 
-// const baseURL = "http://localhost";
-const baseURL = "https://speed-cube-time-e63478004c61.herokuapp.com";
+export const baseURL = import.meta.env.VITE_BASE_URL;
 const axiosInstance = axios.create({
   baseURL: baseURL,
   timeout: 5000,
@@ -12,4 +11,5 @@ const axiosInstance = axios.create({
       : null,
   },
 });
+
 export default axiosInstance;

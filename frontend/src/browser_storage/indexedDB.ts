@@ -118,7 +118,6 @@ export const updateLocalSettings = async (settings: Partial<Settings>) => {
         }
 
         updateRequest.onsuccess = () => {
-          console.log("add new settings");
           resolve();
         };
 
@@ -140,7 +139,6 @@ export const updateLocalSolve = async (id: string, solve: Partial<Solve>) => {
     return new Promise<void>((resolve, reject) => {
       const getRequest = store.get(id);
       getRequest.onsuccess = (event: Event) => {
-        console.log(event, typeof event);
         // @ts-expect-error no type for idb event
         const existing = event.target.result;
         if (existing) {

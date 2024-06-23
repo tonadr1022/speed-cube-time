@@ -64,7 +64,6 @@ export default function RegisterPage() {
         navigate("/login"),
       );
     } catch (error) {
-      console.log("in pages");
       if (error instanceof Error) {
         toast.error(error.message);
       }

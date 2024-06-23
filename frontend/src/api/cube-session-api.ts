@@ -42,7 +42,6 @@ export const createCubeSession = async (
     return res.data;
   } else {
     const res = await createLocalCubeSession(cubeSession);
-    console.log(res);
     return res;
   }
 };
