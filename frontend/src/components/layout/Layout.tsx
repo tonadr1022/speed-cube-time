@@ -26,7 +26,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <div
-        className={clsx("flex h-screen", { "h-screen": currentURL === "/" })}
+        className={clsx("flex h-screen overflow-hidden", {
+          "h-screen": currentURL === "/",
+        })}
       >
         {showNav && (
           <div className="hidden md:flex h-screen sticky top-0 left-0">
