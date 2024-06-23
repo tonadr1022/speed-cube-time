@@ -1,7 +1,7 @@
 import { Link, useRouteError } from "react-router-dom";
 
 export default function ErrorPage() {
-  const error = useRouteError();
+  const error = useRouteError() as Error;
 
   return (
     <div className="flex flex-col justify-center text-center gap-8">
@@ -10,7 +10,7 @@ export default function ErrorPage() {
       </h2>
       <p>Sorry, an unexpected error has occurred.</p>
       <p>
-        <i>Error: {error.statusText || error.Message}</i>
+        <i>Error: {error?.message}</i>
       </p>
       <button className="btn w-min self-center">
         <Link to="/">Home</Link>

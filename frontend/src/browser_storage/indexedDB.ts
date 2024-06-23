@@ -83,8 +83,8 @@ export const fetchLocalCubeSessions = async (): Promise<CubeSession[]> => {
   );
 };
 
-export const fetchLocalSettings = async (): Promise<Settings | undefined> => {
-  return withDB<Settings | undefined>("settings", "readonly", (store) => {
+export const fetchLocalSettings = async () => {
+  return withDB<Settings[] | undefined>("settings", "readonly", (store) => {
     return store.getAll();
   })
     .then((settingsArray) => {
@@ -100,22 +100,18 @@ export const fetchLocalSettings = async (): Promise<Settings | undefined> => {
     });
 };
 
-export const updateLocalSettings = async (
-  settings: Partial<Settings>,
-): Promise<void> => {
+export const updateLocalSettings = async (settings: Partial<Settings>) => {
+  // @ts-expect-error must return promise here
   return withDB<void>("settings", "readwrite", (store) => {
     return new Promise<void>((resolve, reject) => {
       const getRequest = store.getAll();
-      getRequest.onsuccess = (event) => {
-        const settingsArray = event.target.result;
+      getRequest.onsuccess = (event: Event) => {
+        // @ts-expect-error no type for idb event
+        const settingsArray = event.target?.result;
         let updateRequest: IDBRequest;
         if (settingsArray && settingsArray.length > 0) {
           const existingSettings = settingsArray[0];
-          for (const key in settings) {
-            if (Object.prototype.hasOwnProperty.call(settings, key)) {
-              existingSettings[key] = settings[key];
-            }
-          }
+          Object.assign(existingSettings, settings);
           updateRequest = store.put(existingSettings);
         } else {
           updateRequest = store.add(settings as Settings);
@@ -139,17 +135,16 @@ export const updateLocalSettings = async (
 };
 
 export const updateLocalSolve = async (id: string, solve: Partial<Solve>) => {
+  // @ts-expect-error must return promise here
   return withDB<void>("solves", "readwrite", (store) => {
     return new Promise<void>((resolve, reject) => {
       const getRequest = store.get(id);
-      getRequest.onsuccess = (event) => {
+      getRequest.onsuccess = (event: Event) => {
+        console.log(event, typeof event);
+        // @ts-expect-error no type for idb event
         const existing = event.target.result;
         if (existing) {
-          for (const key in existing) {
-            if (Object.prototype.hasOwnProperty.call(solve, key)) {
-              existing[key] = solve[key];
-            }
-          }
+          Object.assign(existing, solve);
           const updateRequest = store.put(existing);
           updateRequest.onsuccess = () => {
             resolve();

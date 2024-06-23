@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -26,11 +27,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not parse or find TOKEN_EXPIRATION_MINUTES")
 	}
-	httpPort := os.Getenv("HTTP_PORT")
+	httpPort := os.Getenv("PORT")
 	if httpPort == "" {
 		httpPort = "8080"
 	}
 
+	fmt.Printf("\n%s\n%d", jwtSigningKey, jwtTokenExpirationMinutes)
 	config := &app.ApiServerConfig{
 		JWTSigningKey:             jwtSigningKey,
 		JWTTokenExpirationMinutes: jwtTokenExpirationMinutes,

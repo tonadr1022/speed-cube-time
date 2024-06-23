@@ -10,25 +10,23 @@ RUN apk update && \
 # change work dir
 WORKDIR /app
 
-# copy mod files into app dir and download
-COPY go.* ./  
+# Copy go.mod and go.sum files and download dependencies
+COPY go.mod go.sum ./
 RUN go mod download
-RUN go mod verify
+
+# Copy the source code
+COPY . .
+
+# Build the Go application
+ENV CGO_ENABLED=0
+RUN ls
+RUN go build -o /tmp/server ./cmd/server/main.go
+
 
 # install migrate for db migrations
 ARG MIGRATE_VERSION=4.17.1
 ADD https://github.com/golang-migrate/migrate/releases/download/v${MIGRATE_VERSION}/migrate.linux-amd64.tar.gz /tmp
 RUN tar -xzf /tmp/migrate.linux-amd64.tar.gz -C /usr/local/bin 
-# copy source files
-
-# build 
-COPY . .
-ENV CGO_ENABLED=0
-RUN go build -o /tmp/server ./cmd/server/*.go
-
-# run tests in the container 
-# FROM build-stage AS run-test-stage
-# RUN go test -v ./...
 
 # deploy binary into lean image
 FROM alpine:latest
@@ -40,6 +38,8 @@ COPY --from=built /usr/local/bin/migrate /usr/local/bin
 COPY --from=built /app/migrations ./migrations/
 COPY --from=built /tmp/server /usr/bin/server
 COPY --from=built /app/cmd/server/entrypoint.sh .
+
+RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8080
 

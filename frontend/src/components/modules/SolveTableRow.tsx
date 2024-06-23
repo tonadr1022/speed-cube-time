@@ -1,7 +1,6 @@
 import { formatTime } from "../../util/time";
 import clsx from "clsx";
 import { Solve } from "../../types/types";
-import { FaTrash } from "react-icons/fa6";
 interface Props {
   solve: Solve;
   onTogglePlusTwo: (solve: Solve) => void;

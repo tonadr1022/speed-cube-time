@@ -56,7 +56,7 @@ const Timer = () => {
       setTimerTimeoutId(
         setTimeout(() => {
           setTimerState("Ready");
-        }, 300),
+        }, 300) as unknown as number | null,
       );
     }
   };

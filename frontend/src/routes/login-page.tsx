@@ -35,7 +35,7 @@ export default function LoginPage() {
       LoginUserData.parse(data);
     } catch (e) {
       if (e instanceof ZodError) {
-        const validationErrors = e.errors.reduce((acc, err) => {
+        const validationErrors = e.errors.reduce((acc: any, err) => {
           acc[err.path[0]] = err.message;
           return acc;
         }, {});

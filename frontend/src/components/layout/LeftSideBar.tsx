@@ -6,7 +6,7 @@ import {
   FaGear,
   FaListUl,
 } from "react-icons/fa6";
-import { RiLogoutBoxLine, RiLoginBoxLine } from "react-icons/ri";
+import { RiLogoutBoxLine } from "react-icons/ri";
 import { RxTimer } from "react-icons/rx";
 import {
   useAuth,

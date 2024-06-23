@@ -41,7 +41,7 @@ services:
       - PGUSER=postgres
       - PGPASSWORD=password
       - PGDATABASE=cube
-      - HTTP_PORT=8080
+      - PORT=8080
       - JWT_SECRET=Dn84hN+gnUHaBY1ZPFvlr8EKu3pZEhfYtMMo7xUkdO0=
       - TOKEN_EXPIRATION_MINUTES=4320
     deploy:

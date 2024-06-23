@@ -1,5 +1,5 @@
 build:
   docker:
-    web: cmd/server/Dockerfile
+    web: Dockerfile
 run:
   web: ./cmd/server/entrypoint.sh
