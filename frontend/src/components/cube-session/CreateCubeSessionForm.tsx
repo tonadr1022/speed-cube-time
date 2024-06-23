@@ -27,7 +27,7 @@ const CreateCubeSessionForm = ({ onCompleted }: Props) => {
   return (
     <div>
       <form
-        className="flex flex-col justify-center gap-2"
+        className="form-control flex flex-col justify-center gap-2"
         onSubmit={handleSubmit}
       >
         <h2 className="text-2xl font-bold pb-2">Create Cube Session</h2>
