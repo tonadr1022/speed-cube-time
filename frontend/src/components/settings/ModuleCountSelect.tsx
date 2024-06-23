@@ -1,4 +1,4 @@
-import { handleDropdownOptionClick } from "../../util/handleDropdownClick";
+import { blurElement } from "../../util/handleDropdownClick";
 import { FaChevronDown } from "react-icons/fa6";
 import { useSettings } from "../../hooks/useContext";
 
@@ -7,7 +7,7 @@ const moduleCounts = [1, 2, 3, 4];
 const ModuleCountSelect = () => {
   const { moduleCount, setModuleCount } = useSettings();
   const handleSettingUpdate = (count: number) => {
-    handleDropdownOptionClick();
+    blurElement();
     setModuleCount(count);
   };
   return (

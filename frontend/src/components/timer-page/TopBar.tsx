@@ -1,51 +1,42 @@
-import { useState } from "react";
+import { toast } from "react-toastify";
 import { useAuth, useOnlineContext, useSettings } from "../../hooks/useContext";
 import CubeSessionSelect from "./CubeSessionSelect";
-import TextToggle from "../common/TextToggle";
+import TopBarOptionsSelect from "./TopBarOptionsSelect";
 
 const TopBar = () => {
-  const [open, setOpen] = useState(false);
   const { focusMode, setFocusMode } = useSettings();
   const { online, setOnline } = useOnlineContext();
-  const { user } = useAuth();
+  const auth = useAuth();
   const handleOnlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newOnline = e.currentTarget.getAttribute("value") === "online";
+    const newOnline = e.target.checked;
+    console.log(newOnline);
     if (newOnline && !window.navigator.onLine) {
-      alert(
-        "You are not connected to the internet. Cannot access online data.",
-      );
-    } else if (newOnline && !user?.id) {
-      alert("Please register to save solves online");
+      toast.error("You are not connected to the internect");
+    } else if (newOnline && !auth.user) {
+      toast.info("Please login to record data online");
     } else {
-      setOnline(e.currentTarget.getAttribute("value") === "online");
+      setOnline(newOnline);
     }
   };
 
   return (
-    <div className="flex flex-row justify-end pt-2 pl-2">
-      {!focusMode && open && (
-        <>
-          <div className="">
-            <CubeSessionSelect />
-          </div>
-          <TextToggle
-            title1="browser"
-            title2="online"
-            name="onlineToggle"
-            on={online}
-            onChange={handleOnlineChange}
-          />
-        </>
-      )}
-      {open && !focusMode && (
-        <button onClick={() => setFocusMode(true)} className="m-1 btn btn-xs">
-          focus
-        </button>
-      )}
+    <div className="flex flex-row p-2 items-center">
       {!focusMode && (
-        <button className="m-1 btn btn-xs" onClick={() => setOpen(!open)}>
-          {open ? "<" : "options"}
-        </button>
+        <>
+          <div className="flex-1 flex flex-row items-center">
+            <CubeSessionSelect />
+            <label className=" label cursor-pointer text-sm font-semibold">
+              <span className="label-text mr-2">Online</span>
+              <input
+                type="checkbox"
+                className="toggle toggle-sm toggle-success"
+                checked={online}
+                onChange={handleOnlineChange}
+              />
+            </label>
+          </div>
+          <TopBarOptionsSelect />
+        </>
       )}
       {focusMode && (
         <button onClick={() => setFocusMode(false)} className="m-1 btn btn-xs">

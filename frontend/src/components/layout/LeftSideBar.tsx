@@ -63,7 +63,7 @@ const LeftSideBarShell = ({ children }: Props) => {
           </button>
         )}
         <button
-          className="absolute bottom-12 h-8"
+          className=" opacity-75 hover:opacity-100 transition-opacity cursor-pointer absolute bottom-12 h-8"
           onClick={() => setNavCollapsed(!navCollapsed)}
         >
           {navCollapsed ? (

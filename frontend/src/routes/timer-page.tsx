@@ -17,7 +17,7 @@ import {
 import RightSideBar from "../components/timer-page/RightSideBar.tsx";
 import { useEffect } from "react";
 
-export default function TimerPage() {
+const TimerPage = () => {
   const auth = useAuth();
   const { online, setOnline } = useOnlineContext();
   if (online && (!auth.user || !window.navigator.onLine)) {
@@ -87,4 +87,6 @@ export default function TimerPage() {
       </div>
     </>
   );
-}
+};
+
+export default TimerPage;

@@ -17,15 +17,11 @@ export const OnlineContextProvider = ({
   children: React.ReactNode;
 }) => {
   const queryClient = useQueryClient();
-  const [online, setOnline] = usePersistState(
-    "online",
-    window.navigator.onLine,
-    () => {
-      queryClient.invalidateQueries({ queryKey: ["solves"] });
-      queryClient.invalidateQueries({ queryKey: ["cubeSessions"] });
-      queryClient.invalidateQueries({ queryKey: ["settings"] });
-    },
-  );
+  const [online, setOnline] = usePersistState("online", false, () => {
+    queryClient.invalidateQueries({ queryKey: ["solves"] });
+    queryClient.invalidateQueries({ queryKey: ["cubeSessions"] });
+    queryClient.invalidateQueries({ queryKey: ["settings"] });
+  });
   return (
     <OnlineContext.Provider value={{ online, setOnline }}>
       {children}

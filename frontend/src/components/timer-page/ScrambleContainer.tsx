@@ -32,7 +32,7 @@ const ScrambleContainer = React.memo(() => {
       <div
         onTouchStart={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
-        className="flex"
+        className="flex flex-row gap-2"
       >
         <button
           className="btn btn-sm btn-neutral-focus p-1 m-0 rounded-full"

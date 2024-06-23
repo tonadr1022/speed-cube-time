@@ -1,6 +1,6 @@
 import { RxHamburgerMenu, RxTimer } from "react-icons/rx";
 import { FaGear, FaListUl } from "react-icons/fa6";
-import { handleDropdownOptionClick } from "../../util/handleDropdownClick";
+import { blurElement } from "../../util/handleDropdownClick";
 import { Link } from "react-router-dom";
 import clsx from "clsx";
 
@@ -12,7 +12,7 @@ type TopNavItemProps = {
 const TopNavMenuItem = ({ icon, text, href }: TopNavItemProps) => {
   return (
     <li>
-      <Link className="flex" to={href} onClick={handleDropdownOptionClick}>
+      <Link className="flex" to={href} onClick={blurElement}>
         {icon}
         <span>{text}</span>
       </Link>

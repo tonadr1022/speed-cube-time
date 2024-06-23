@@ -77,7 +77,7 @@ const Timer = () => {
   };
 
   useSpaceBarDown(handleDown, keybindsActive);
-  useSpaceBarUp(handleUp);
+  useSpaceBarUp(handleUp, keybindsActive);
   return (
     <div
       onTouchStart={() => handleDown()}

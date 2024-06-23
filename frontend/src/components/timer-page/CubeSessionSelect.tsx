@@ -1,42 +1,45 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { handleDropdownOptionClick } from "../../util/handleDropdownClick";
+import { blurElement } from "../../util/handleDropdownClick";
 import {
   useFetchCubeSessions,
   useFetchSettings,
   useUpdateSetings,
 } from "../../hooks/useFetch";
-import Loading from "../Loading";
 import Modal from "../Modal";
 import CreateCubeSessionForm from "../cube-session/CreateCubeSessionForm";
 import { CUBE_TYPE_OPTIONS } from "../../util/constants";
 import { useTimerContext } from "../../hooks/useContext";
+import clsx from "clsx";
 import ReactList from "react-list";
 
-const CubeSessionSelect = () => {
+type Props = {
+  className?: string;
+};
+
+const Skeleton = ({ className }: { className?: string }) => {
+  return (
+    <div className={clsx("dropdown", className)}>
+      <div tabIndex={0} className="m-1 btn btn-xs bg-base-300">
+        No Sessions
+      </div>
+    </div>
+  );
+};
+
+const CubeSessionSelect = ({ className }: Props) => {
   const [open, setOpen] = useState(false);
   const { setKeybindsActive } = useTimerContext();
   const { isLoading: settingsLoading, data: settings } = useFetchSettings();
   const { isLoading: cubeSessionsLoading, data: cubeSessions } =
     useFetchCubeSessions();
-
   const queryClient = useQueryClient();
   const updateUserSettingsMutation = useUpdateSetings(queryClient);
-
-  const handleSettingUpdate = (
-    e: React.MouseEvent<HTMLLIElement, MouseEvent>,
-  ) => {
-    if (e.currentTarget.getAttribute("value") === "add") {
-      setOpen(true);
-      setKeybindsActive(false);
-    }
-    handleDropdownOptionClick();
-
-    const value = e.currentTarget.getAttribute("value");
+  const handleSettingUpdate = (id: string) => {
     updateUserSettingsMutation.mutate({
       id: settings?.id || "",
       settings: {
-        active_cube_session_id: value!,
+        active_cube_session_id: id,
       },
     });
   };
@@ -46,59 +49,51 @@ const CubeSessionSelect = () => {
     setKeybindsActive(true);
   };
 
-  const handleClick = (e: React.MouseEvent<HTMLLIElement, MouseEvent>) => {
-    if (e.currentTarget.getAttribute("value") === "add") {
-      setOpen(true);
-    }
-    handleDropdownOptionClick();
-  };
-
   if (settingsLoading || cubeSessionsLoading || !cubeSessions || !settings)
-    return <Loading />;
+    return <Skeleton />;
 
   const activeSession = cubeSessions.find(
     (session) => session.id === settings.active_cube_session_id,
   );
 
-  if (!activeSession) return <div></div>;
   const renderSessionItem = (index: number, key: number | string) => {
     const session = cubeSessions[index];
     return (
-      <li value={session.id} key={key} onClick={handleSettingUpdate}>
-        <button className="hover:bg-base-300">
+      <li
+        value={session.id}
+        key={key}
+        onClick={() => handleSettingUpdate(session.id)}
+      >
+        <a className={clsx(activeSession?.id === session.id && "active")}>
           {session.name} - {CUBE_TYPE_OPTIONS[session.cube_type]}
-        </button>
+        </a>
       </li>
     );
   };
+  if (!activeSession) return <Skeleton />;
   return (
     <>
-      <div className="dropdown ">
+      <div className={clsx("dropdown", className)}>
         <div tabIndex={0} className="m-1 btn btn-xs bg-base-300">
           {activeSession.name} - {CUBE_TYPE_OPTIONS[activeSession.cube_type]}
         </div>
         <ul
           tabIndex={0}
-          className="p-2 shadow menu dropdown-content bg-base-100 rounded-box w-80 max-h-64 overflow-y-auto block"
+          className="p-2 shadow menu dropdown-content rounded-box w-80 max-h-64 overflow-y-auto block"
         >
-          {/* {cubeSessions.map((session) => ( */}
-          {/*   <li */}
-          {/*     value={session.id} */}
-          {/*     key={session.id} */}
-          {/*     onClick={handleSettingUpdate} */}
-          {/*   > */}
-          {/*     <button className="hover:bg-base-300"> */}
-          {/*       {session.name} - {CUBE_TYPE_OPTIONS[session.cube_type]} */}
-          {/*     </button> */}
-          {/*   </li> */}
-          {/* ))} */}
           <ReactList
             itemRenderer={renderSessionItem}
             length={cubeSessions.length}
             type="uniform"
           />
-          <li value={"add"} onClick={handleClick}>
-            <p className="hover:bg-base-300">Add Session</p>
+          <li
+            onClick={() => {
+              blurElement();
+              setOpen(true);
+              setKeybindsActive(false);
+            }}
+          >
+            <p className="">Add Session</p>
           </li>
         </ul>
       </div>
