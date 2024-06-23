@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	db, err := db.InitCockroaachDB()
+	db, err := db.InitDB()
 	if err != nil {
 		log.Fatalf("failed to initialize the store: %s", err)
 	}

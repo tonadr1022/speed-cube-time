@@ -12,23 +12,24 @@ import (
 )
 
 // initializes the database connection and creates tables if not initialized
-func InitCockroaachDB() (*sql.DB, error) {
+func InitDB() (*sql.DB, error) {
 	var (
 		db  *sql.DB
 		err error
 	)
 
-	pgConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
-		os.Getenv("PGHOST"),
-		os.Getenv("PGPORT"),
-		os.Getenv("PGDATABASE"),
-		os.Getenv("PGUSER"),
-		os.Getenv("PGPASSWORD"),
-	)
+	// pgConnString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
+	// 	os.Getenv("PGHOST"),
+	// 	os.Getenv("PGPORT"),
+	// 	os.Getenv("PGDATABASE"),
+	// 	os.Getenv("PGUSER"),
+	// 	os.Getenv("PGPASSWORD"),
+	// )
 
-	fmt.Printf("conn string \n%v\n", pgConnString)
+	// fmt.Printf("conn string \n%v\n", pgConnString)
+	fmt.Printf("\nDB URL: %s\n", os.Getenv("DATABASE_URL"))
 	openDB := func() error {
-		db, err = sql.Open("postgres", pgConnString)
+		db, err = sql.Open("postgres", os.Getenv("DATABASE_URL"))
 		return err
 	}
 
