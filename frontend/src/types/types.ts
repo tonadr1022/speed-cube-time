@@ -10,6 +10,7 @@ export type Solve = {
   created_at: Date;
   updated_at: Date;
   user_id: string;
+  local?: boolean;
 };
 
 export type SolveCreatePayload = {
@@ -20,6 +21,8 @@ export type SolveCreatePayload = {
   dnf: boolean;
   plus_two: boolean;
   notes: string;
+  id?: string;
+  local?: boolean;
 };
 
 export type SolveUpdatePayload = {
@@ -48,9 +51,9 @@ export type CubeSession = {
   id: string;
   name: string;
   cube_type: string;
-  created_at: string;
-  updated_at: string;
-  user_id: string;
+  created_at: Date;
+  updated_at: Date;
+  user_id?: string;
 };
 
 export type CubeSessionCreatePayload = {

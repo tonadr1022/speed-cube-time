@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
-import { FaArrowRotateRight, FaCopy } from "react-icons/fa6";
+import React, { useEffect, useState } from "react";
+import { FaArrowRotateRight, FaCheck, FaCopy } from "react-icons/fa6";
 import { getScramble } from "../../util/getScramble";
 import { useTimerContext } from "../../hooks/useContext";
 
 const ScrambleContainer = React.memo(() => {
-  const [resetScramble, setResetScramble] = React.useState(false);
+  const [resetScramble, setResetScramble] = useState(false);
+  const [clipboardCopied, setClipboardCompied] = useState(false);
   const { scramble, setScramble, cubeType } = useTimerContext();
 
   useEffect(() => {
@@ -19,15 +20,29 @@ const ScrambleContainer = React.memo(() => {
     }
   }, [setScramble, cubeType, resetScramble]);
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(scramble);
+    setClipboardCompied(true);
+    setTimeout(() => setClipboardCompied(false), 400);
+  };
+
   return (
     <div className="flex flex-col items-center jutify-center">
       <h2 className="text-xl">{scramble || ""}</h2>
-      <div className="flex">
+      <div
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        className="flex flex-row gap-2"
+      >
         <button
           className="btn btn-sm btn-neutral-focus p-1 m-0 rounded-full"
-          onClick={() => navigator.clipboard.writeText(scramble)}
+          onClick={handleCopy}
         >
-          <FaCopy className="w-6 h-6" />
+          {clipboardCopied ? (
+            <FaCheck className="w-6 h-6 " />
+          ) : (
+            <FaCopy className="w-6 h-6" />
+          )}
         </button>
         <button
           className="btn btn-sm btn-neutral-focus p-1 m-0 rounded-full"

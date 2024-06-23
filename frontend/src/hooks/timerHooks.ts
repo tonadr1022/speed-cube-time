@@ -19,10 +19,13 @@ export const useSpaceBarDown = (
   }, [callback, canStart]);
 };
 
-export const useSpaceBarUp = (callback: () => void): void => {
+export const useSpaceBarUp = (
+  callback: () => void,
+  canStart: boolean,
+): void => {
   useEffect(() => {
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === "Space" && !e.repeat) {
+      if (canStart && e.code === "Space" && !e.repeat) {
         e.preventDefault();
         callback();
       }
@@ -31,5 +34,5 @@ export const useSpaceBarUp = (callback: () => void): void => {
     return () => {
       document.removeEventListener("keyup", handleKeyUp);
     };
-  }, [callback]);
+  }, [callback, canStart]);
 };

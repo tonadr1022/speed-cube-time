@@ -1,6 +1,9 @@
 import { useMutation, useQuery, QueryClient } from "@tanstack/react-query";
 import { fetchUserSettings, updateUserSettings } from "../api/settings-api";
-import { fetchUserCubeSessions } from "../api/cube-session-api";
+import {
+  createCubeSession,
+  fetchUserCubeSessions,
+} from "../api/cube-session-api";
 import {
   createSolve,
   deleteSolve,
@@ -8,13 +11,15 @@ import {
   updateSolve,
 } from "../api/solves-api";
 import {
+  CubeSession,
+  CubeSessionCreatePayload,
   Settings,
   SettingsUpdatePayload,
   Solve,
   SolveCreatePayload,
 } from "../types/types";
 import { toast } from "react-toastify";
-import { useAuth } from "./useContext";
+import { useAuth, useOnlineContext } from "./useContext";
 
 const toastServerError = () => {
   toast.error("ServerError");
@@ -22,27 +27,30 @@ const toastServerError = () => {
 
 export const useFetchCubeSessions = () => {
   const auth = useAuth();
+  const { online } = useOnlineContext();
   return useQuery({
     queryKey: ["cubeSessions"],
-    queryFn: () => fetchUserCubeSessions(auth.user?.id || ""),
+    queryFn: () => fetchUserCubeSessions(online, auth.user?.id || ""),
     staleTime: 60 * 1000,
   });
 };
 
 export const useFetchAllUserSolves = () => {
   const auth = useAuth();
+  const { online } = useOnlineContext();
   return useQuery({
     queryKey: ["solves"],
-    queryFn: () => fetchUserSolves(auth.user?.id || ""),
+    queryFn: () => fetchUserSolves(online, auth.user?.id || ""),
     staleTime: 60 * 1000,
   });
 };
 
 export const useFetchSettings = () => {
   const auth = useAuth();
+  const { online } = useOnlineContext();
   return useQuery({
     queryKey: ["settings"],
-    queryFn: () => fetchUserSettings(auth.user?.id || ""),
+    queryFn: () => fetchUserSettings(online, auth.user?.id || ""),
     staleTime: 60 * 1000,
   });
 };
@@ -53,8 +61,9 @@ export type UpdateSettingsArgs = {
 };
 
 export const useAddSolveMutation = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
-    mutationFn: (solve: SolveCreatePayload) => createSolve(true, solve),
+    mutationFn: (solve: SolveCreatePayload) => createSolve(online, solve),
     // TODO use immmer for large arrays
     onMutate: async (newSolve: SolveCreatePayload) => {
       await queryClient.cancelQueries({ queryKey: ["solves"] });
@@ -73,9 +82,10 @@ export const useAddSolveMutation = (queryClient: QueryClient) => {
 };
 
 export const useUpdateSetings = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
     mutationFn: ({ id, settings }: UpdateSettingsArgs) =>
-      updateUserSettings(id, settings),
+      updateUserSettings(online, id, settings),
     onMutate: (newSettings: UpdateSettingsArgs) => {
       const prevSettings = queryClient.getQueryData(["settings"]);
       queryClient.setQueryData(["settings"], (old: Settings) => ({
@@ -94,8 +104,9 @@ export type UpdateSolveArgs = {
 };
 
 export const useDeleteSolve = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
-    mutationFn: (id: string) => deleteSolve(id),
+    mutationFn: (id: string) => deleteSolve(online, id),
     onMutate: (id: string) => {
       const prevSolves: Solve[] | undefined = queryClient.getQueryData([
         "solves",
@@ -110,8 +121,10 @@ export const useDeleteSolve = (queryClient: QueryClient) => {
 };
 
 export const useUpdateSolve = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
   return useMutation({
-    mutationFn: ({ id, solve }: UpdateSolveArgs) => updateSolve(id, solve),
+    mutationFn: ({ id, solve }: UpdateSolveArgs) =>
+      updateSolve(online, id, solve),
     onMutate: (newSolve: UpdateSolveArgs) => {
       // await queryClient.cancelQueries(["solves"]);
 
@@ -138,6 +151,29 @@ export const useUpdateSolve = (queryClient: QueryClient) => {
       });
 
       return { prevSolves, prevSolve };
+    },
+  });
+};
+
+export const useCreateCubeSession = (queryClient: QueryClient) => {
+  const { online } = useOnlineContext();
+  return useMutation({
+    mutationFn: (session: CubeSessionCreatePayload) =>
+      createCubeSession(session, online),
+    onMutate: async (newSession: CubeSessionCreatePayload) => {
+      await queryClient.cancelQueries({ queryKey: ["cubeSessions"] });
+      const prevSessions = queryClient.getQueryData(["cubeSessions"]);
+      queryClient.setQueryData(["cubeSessions"], (old: CubeSession[]) => [
+        ...old,
+        newSession,
+      ]);
+      return { prevSessions };
+    },
+    onError: (_, __, context) => {
+      queryClient.setQueryData(["cubeSessions"], context?.prevSessions);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["cubeSessions"] });
     },
   });
 };

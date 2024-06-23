@@ -139,7 +139,6 @@ function useProvideAuth() {
   };
 }
 
-// ProvideAuth component that provides the auth context to its children
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useProvideAuth();
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;

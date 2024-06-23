@@ -1,6 +1,6 @@
 import { useSettings } from "../../hooks/useContext";
 import { MODULE_OPTIONS } from "../../util/constants";
-import { handleDropdownOptionClick } from "../../util/handleDropdownClick";
+import { blurElement } from "../../util/handleDropdownClick";
 
 type Props = {
   moduleNumber: number;
@@ -16,7 +16,7 @@ const ModuleSelect = ({ moduleNumber }: Props) => {
       return m;
     });
     setModules(newModules);
-    handleDropdownOptionClick();
+    blurElement();
   };
 
   return (
@@ -32,12 +32,7 @@ const ModuleSelect = ({ moduleNumber }: Props) => {
         className="p-0 menu dropdown-content border-base-300 border-2 bg-base-100 rounded-box w-40 max-h-64 overflow-y-auto block"
       >
         {Object.entries(MODULE_OPTIONS).map(([key, value]) => (
-          <li
-            value={key}
-            key={key}
-            onClick={() => handleModuleSelect(key)}
-            className="hover:bg-base-300"
-          >
+          <li value={key} key={key} onClick={() => handleModuleSelect(key)}>
             <button>{value}</button>
           </li>
         ))}

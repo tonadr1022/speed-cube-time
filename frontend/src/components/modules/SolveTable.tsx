@@ -53,7 +53,7 @@ const SolveTable = ({ solves }: Props) => {
   };
 
   return (
-    <div className="bg-base-200 h-full overflow-y-auto w-full p-2 flex flex-col rounded-lg">
+    <div className="bg-base-200 h-full overflow-y-auto w-full min-h-full flex flex-col rounded-lg">
       <ReactList
         itemRenderer={renderSolveRow}
         length={solves.length}

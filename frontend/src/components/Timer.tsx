@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useAddSolveMutation, useFetchSettings } from "../hooks/useFetch.tsx";
+import { useAddSolveMutation, useFetchSettings } from "../hooks/useFetch.ts";
 import DurationDisplay from "../components/timer-page/DurationDisplay.tsx";
 import { useSpaceBarDown, useSpaceBarUp } from "../hooks/timerHooks.ts";
 import { useTimerContext } from "../hooks/useContext.ts";
@@ -31,17 +31,17 @@ const Timer = () => {
       if (timerTimeoutId) clearTimeout(timerTimeoutId);
       if (timerIntervalId) clearInterval(timerIntervalId);
 
-      for (let i = 0; i < 100; i++) {
-        addSolveMutation.mutate({
-          duration: duration,
-          scramble: scramble,
-          cube_session_id: settings?.active_cube_session_id || "",
-          cube_type: cubeType,
-          dnf: false,
-          plus_two: false,
-          notes: "",
-        });
-      }
+      // for (let i = 0; i < 10; i++) {
+      addSolveMutation.mutate({
+        duration: duration,
+        scramble: scramble,
+        cube_session_id: settings?.active_cube_session_id || "",
+        cube_type: cubeType,
+        dnf: false,
+        plus_two: false,
+        notes: "",
+      });
+      // }
 
       setTimerState("Stalling");
       // set new scramble
@@ -77,7 +77,7 @@ const Timer = () => {
   };
 
   useSpaceBarDown(handleDown, keybindsActive);
-  useSpaceBarUp(handleUp);
+  useSpaceBarUp(handleUp, keybindsActive);
   return (
     <div
       onTouchStart={() => handleDown()}

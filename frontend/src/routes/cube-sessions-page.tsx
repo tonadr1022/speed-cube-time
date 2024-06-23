@@ -1,19 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchUserCubeSessions } from "../api/cube-session-api";
 import { useState } from "react";
 import Modal from "../components/Modal.tsx";
 import CreateCubeSessionForm from "../components/cube-session/CreateCubeSessionForm";
 import Loading from "../components/Loading.tsx";
 import PageWrapper from "../components/layout/PageWrapper.tsx";
-import { useAuth } from "../hooks/useContext.ts";
+import { useFetchCubeSessions } from "../hooks/useFetch.ts";
 
 export default function CubeSessionsPage() {
   const [addSessionOpen, setAddSessionOpen] = useState(false);
-  const auth = useAuth();
-  const { isLoading, data: cubeSessions } = useQuery({
-    queryKey: ["cubeSessions"],
-    queryFn: () => fetchUserCubeSessions(auth?.user?.id || ""),
-  });
+  const { data: cubeSessions, isLoading } = useFetchCubeSessions();
 
   return isLoading ? (
     <Loading />

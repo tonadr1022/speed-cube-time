@@ -4,42 +4,34 @@ import { SettingsContext } from "../context/settingsContext";
 import { CubeSettingsContext } from "../context/cubeSettingContext";
 import { TimerContext } from "../context/timerContext";
 import { LayoutContext } from "../context/layoutContext";
+import { OnlineContext } from "../context/onlineContext";
 
-export const useAuth = () => {
-  const auth = useContext(AuthContext);
-  if (!auth) {
-    throw new Error("Can't use auth context outside provider");
+const useCtx = <T>(ctx: React.Context<T | undefined>): T => {
+  const con = useContext(ctx);
+  if (!con) {
+    throw new Error("Can't use context outside provider");
   }
-  return auth;
+  return con;
+};
+export const useAuth = () => {
+  return useCtx(AuthContext);
 };
 
 export const useTimerContext = () => {
-  const timerContext = useContext(TimerContext);
-  if (!timerContext) {
-    throw new Error("Can't use timer context outside provider");
-  }
-  return timerContext;
+  return useCtx(TimerContext);
 };
 
 export const useSettings = () => {
-  const settings = useContext(SettingsContext);
-  if (!settings) {
-    throw new Error("Can't use settings context outside provider");
-  }
-  return settings;
+  return useCtx(SettingsContext);
+};
+
+export const useOnlineContext = () => {
+  return useCtx(OnlineContext);
 };
 export const useLayoutContext = () => {
-  const settings = useContext(LayoutContext);
-  if (!settings) {
-    throw new Error("Can't use layout context outside provider");
-  }
-  return settings;
+  return useCtx(LayoutContext);
 };
 
 export const useCubeSettings = () => {
-  const cubeSettings = useContext(CubeSettingsContext);
-  if (!cubeSettings) {
-    throw new Error("Can't use cube settings context outside provider");
-  }
-  return cubeSettings;
+  return useCtx(CubeSettingsContext);
 };

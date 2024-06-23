@@ -12,8 +12,6 @@ interface SettingsContextType {
   setModuleCount: React.Dispatch<SetStateAction<number>>;
   display3D: boolean;
   setDisplay3D: React.Dispatch<SetStateAction<boolean>>;
-  online: boolean;
-  setOnline: React.Dispatch<SetStateAction<boolean>>;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(
@@ -36,14 +34,11 @@ export const SettingsProvider = ({
     "none",
   ]);
   const [display3D, setDisplay3D] = usePersistState("display3D", true);
-  const [online, setOnline] = usePersistState("online", true);
   const [moduleCount, setModuleCount] = usePersistState("moduleCount", 3);
 
   return (
     <SettingsContext.Provider
       value={{
-        online,
-        setOnline,
         theme,
         setTheme,
         focusMode,

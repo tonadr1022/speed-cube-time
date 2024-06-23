@@ -22,6 +22,9 @@ const CubeDisplay = ({ elHeight: elHeight }: Props) => {
       el.visualization = "2D";
     }
     el.style.width = "100%";
+    el.style.height = elHeight
+      ? `${elHeight}px`
+      : `${Math.floor(window.innerHeight * 1 * 0.3) - 1000}px`;
 
     scrambleRef.current?.appendChild(el);
     const newref = scrambleRef.current;
