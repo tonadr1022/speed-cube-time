@@ -76,7 +76,7 @@ const TimerPage = () => {
     <Loading />
   ) : (
     <>
-      <div className="flex h-full flex-col md:flex-row-reverse bg-base text-base">
+      <div className="flex h-full items-stretch flex-col md:flex-row-reverse bg-base text-base">
         {!focusMode && (
           <>{rightSidebarOpen && <RightSideBar solves={filteredSolves} />}</>
         )}

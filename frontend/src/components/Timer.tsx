@@ -82,7 +82,7 @@ const Timer = () => {
     <div
       onTouchStart={() => handleDown()}
       onTouchEnd={() => handleUp()}
-      className="flex flex-col gap-y-4 justify-center items-center text-center flex-1"
+      className="prevent-select flex flex-col gap-y-4 justify-center items-center text-center flex-1"
     >
       <ScrambleContainer />
       <DurationDisplay duration={duration} state={timerState} />

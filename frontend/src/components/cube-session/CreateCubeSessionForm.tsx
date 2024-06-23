@@ -39,7 +39,6 @@ const CreateCubeSessionForm = ({ onCompleted }: Props) => {
             className="input input-sm input-bordered w-full max-w-xs"
             type="text"
             value={data.name}
-            autoFocus
             onChange={(e) => setData({ ...data, name: e.target.value })}
           />
         </div>

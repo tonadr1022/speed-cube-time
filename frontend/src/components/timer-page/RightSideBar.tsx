@@ -45,7 +45,7 @@ const RightSideBar = ({ solves }: Props) => {
   return (
     <div
       className={clsx(
-        "bg-base-200 hidden md:flex md:flex-col box-content w-64 h-screen justify-items-stretch items-stretch content-stretch",
+        "h-full bg-base-200 hidden md:flex md:flex-col box-content w-64 justify-items-stretch items-stretch content-stretch",
       )}
       ref={containerRef}
     >
