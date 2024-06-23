@@ -125,7 +125,7 @@ const LeftSideBar = () => {
 export default LeftSideBar;
 
 type SideBarItemProps = {
-  icon: unknown;
+  icon: React.ReactNode;
   text: string;
   href: string;
   navCollapsed: boolean;
@@ -144,8 +144,8 @@ export const SideBarItem = ({
       <Link
         to={href}
         className={clsx(
-          "flex items-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer",
-          active && "opacity-100",
+          "flex items-center hover:opacity-100 transition-opacity cursor-pointer",
+          active ? "opacity-100" : "opacity-50",
         )}
       >
         {icon}

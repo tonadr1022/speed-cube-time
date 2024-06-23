@@ -29,13 +29,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         className={clsx("flex h-screen", { "h-screen": currentURL === "/" })}
       >
         {showNav && (
-          <div className="hidden sm:flex h-screen sticky top-0 left-0">
+          <div className="hidden md:flex h-screen sticky top-0 left-0">
             <LeftSideBar />
           </div>
         )}
         <div className="w-full flex flex-col h-full">
           {showNav && (
-            <TopNavBar className="sm:hidden z-50 sticky top-0 left-0" />
+            <TopNavBar className="md:hidden z-50 sticky top-0 left-0" />
           )}
           <div className="flex flex-col h-full w-full">
             <div className="flex-1">{children}</div>

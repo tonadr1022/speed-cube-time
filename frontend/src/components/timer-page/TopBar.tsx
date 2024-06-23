@@ -9,7 +9,6 @@ const TopBar = () => {
   const auth = useAuth();
   const handleOnlineChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newOnline = e.target.checked;
-    console.log(newOnline);
     if (newOnline && !window.navigator.onLine) {
       toast.error("You are not connected to the internect");
     } else if (newOnline && !auth.user) {
@@ -21,7 +20,7 @@ const TopBar = () => {
 
   return (
     <div className="flex flex-row p-2 items-center">
-      {!focusMode && (
+      {!focusMode ? (
         <>
           <div className="flex-1 flex flex-row items-center">
             <CubeSessionSelect />
@@ -37,8 +36,7 @@ const TopBar = () => {
           </div>
           <TopBarOptionsSelect />
         </>
-      )}
-      {focusMode && (
+      ) : (
         <button onClick={() => setFocusMode(false)} className="m-1 btn btn-xs">
           X
         </button>

@@ -25,10 +25,8 @@ export const fetchUserSettings = async (
         created_at: new Date(),
         updated_at: new Date(),
       };
-      await updateLocalSettings(initialSettings);
-      return new Promise<Settings>(() => {
-        return initialSettings;
-      });
+      updateLocalSettings(initialSettings);
+      return initialSettings;
     }
     return res;
   }

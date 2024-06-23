@@ -18,8 +18,8 @@ export const TimerContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [keybindsActive, setKeybindsActive] = useState<boolean>(true);
   const [scramble, setScramble] = useState<string>("");
+  const [keybindsActive, setKeybindsActive] = useState<boolean>(true);
   const [cubeType, setCubeType] = useState<string>("333");
   return (
     <TimerContext.Provider

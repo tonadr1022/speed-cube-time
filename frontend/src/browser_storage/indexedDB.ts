@@ -118,11 +118,11 @@ export const updateLocalSettings = async (
           }
           updateRequest = store.put(existingSettings);
         } else {
-          console.log("add new settings", settings);
           updateRequest = store.add(settings as Settings);
         }
 
         updateRequest.onsuccess = () => {
+          console.log("add new settings");
           resolve();
         };
 
