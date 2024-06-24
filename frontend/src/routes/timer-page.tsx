@@ -1,7 +1,5 @@
 import {
-  useAuth,
   useLayoutContext,
-  useOnlineContext,
   useSettings,
   useTimerContext,
 } from "../hooks/useContext";
@@ -18,23 +16,17 @@ import RightSideBar from "../components/timer-page/RightSideBar.tsx";
 import { useEffect } from "react";
 
 const TimerPage = () => {
-  const auth = useAuth();
-  const { online, setOnline } = useOnlineContext();
-  if (online && (!auth.user || !window.navigator.onLine)) {
-    setOnline(false);
-  }
+  const { focusMode, setFocusMode } = useSettings();
+  const { setRightSidebarOpen, rightSidebarOpen } = useLayoutContext();
 
   // need to load scrambow by calling a scramble
   new Scrambow().get(1)[0].scramble_string;
-  const { focusMode, setFocusMode } = useSettings();
 
   // load all data so components can access cache instead
   const { data: cubeSessions, isLoading: cubeSessionsLoading } =
     useFetchCubeSessions();
   const { data: settings, isLoading: settingsLoading } = useFetchSettings();
   const { data: solveData, isLoading: solvesLoading } = useFetchAllUserSolves();
-
-  const { setRightSidebarOpen, rightSidebarOpen } = useLayoutContext();
 
   // get and set cube type for session
   const { setCubeType } = useTimerContext();
@@ -66,17 +58,17 @@ const TimerPage = () => {
     };
   }); // Dependency array ensures effect runs only when keybindsActive changes
 
-  if (solvesLoading) return <Loading />;
+  if (solvesLoading || !settings) return <Loading />;
   const solves = solveData || [];
   const filteredSolves = solves.filter(
-    (s) => s.cube_session_id === settings?.active_cube_session_id,
+    (s) => s.cube_session_id === settings.active_cube_session_id,
   );
 
   return solvesLoading || cubeSessionsLoading || settingsLoading ? (
     <Loading />
   ) : (
     <>
-      <div className="flex h-full items-stretch flex-col md:flex-row-reverse bg-base text-base">
+      <div className="flex h-screen items-stretch flex-col md:flex-row-reverse bg-base text-base">
         {!focusMode && (
           <>{rightSidebarOpen && <RightSideBar solves={filteredSolves} />}</>
         )}

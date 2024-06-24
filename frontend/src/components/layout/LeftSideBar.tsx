@@ -4,7 +4,7 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaGear,
-  FaListUl,
+  FaTable,
 } from "react-icons/fa6";
 import { RiLogoutBoxLine } from "react-icons/ri";
 import { RxTimer } from "react-icons/rx";
@@ -27,7 +27,7 @@ const LeftSideBarShell = ({ children }: Props) => {
   return (
     <nav
       className={clsx(
-        "h-full flex flex-col bg-base-300 w-16",
+        "h-screen flex flex-col bg-base-300 w-16",
         !navCollapsed ? "md:w-56" : "md:w-16",
       )}
     >
@@ -106,7 +106,7 @@ const LeftSideBar = () => {
       {/* /> */}
       <SideBarItem
         navCollapsed={navCollapsed}
-        icon={<FaListUl />}
+        icon={<FaTable />}
         text="Sessions"
         href="/sessions"
         active={pathname === "/sessions"}

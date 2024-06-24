@@ -4,10 +4,14 @@ import { Solve } from "../../types/types";
 import { useDeleteSolve, useUpdateSolve } from "../../hooks/useFetch";
 import { useQueryClient } from "@tanstack/react-query";
 import ReactList from "react-list";
+import clsx from "clsx";
 
-type Props = { solves: Solve[] };
+type Props = {
+  className?: string;
+  solves: Solve[];
+};
 
-const SolveTable = ({ solves }: Props) => {
+const SolveTable = ({ solves, className }: Props) => {
   const client = useQueryClient();
   const deleteSolve = useDeleteSolve(client);
   const updateSolve = useUpdateSolve(client);
@@ -53,7 +57,12 @@ const SolveTable = ({ solves }: Props) => {
   };
 
   return (
-    <div className="bg-base-200 h-full overflow-y-auto w-full min-h-full flex flex-col rounded-lg">
+    <div
+      className={clsx(
+        "bg-base-200 h-full overflow-y-auto w-full flex flex-col rounded-lg",
+        className,
+      )}
+    >
       <ReactList
         itemRenderer={renderSolveRow}
         length={solves.length}

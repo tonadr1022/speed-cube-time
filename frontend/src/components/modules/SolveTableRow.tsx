@@ -38,7 +38,7 @@ const SolveTableRow = ({
           <div>
             <button
               className={clsx(
-                "btn btn-xs bg-base-300 border-none hover:bg-warning transition-none",
+                "btn btn-xs bg-base-300 border-none hover:bg-warning ",
                 solve.plus_two && "bg-warning text-neutral",
               )}
               onClick={() => onTogglePlusTwo(solve)}
@@ -48,7 +48,7 @@ const SolveTableRow = ({
           </div>
           <div>
             <button
-              className="btn btn-xs bg-base-300 border-none hover:bg-error transition-none"
+              className="btn btn-xs bg-base-300 border-none hover:bg-error "
               onClick={() => onDelete(solve.id)}
             >
               X
@@ -57,7 +57,7 @@ const SolveTableRow = ({
           <div>
             <button
               className={clsx(
-                "btn btn-xs bg-base-300 border-none hover:bg-error",
+                "btn btn-xs bg-base-300 border-none hover:bg-error ",
                 solve.dnf && "bg-error text-neutral",
               )}
               onClick={() => onToggleDnf(solve)}

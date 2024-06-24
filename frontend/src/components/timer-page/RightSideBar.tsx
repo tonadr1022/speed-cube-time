@@ -16,13 +16,13 @@ type Props = {
 };
 
 const RightSideBar = ({ solves }: Props) => {
-  //  const { moduleOne } = useAppSelector((state) => state.setting);
   const containerRef = useRef<HTMLDivElement>(null);
   const { modules, moduleCount } = useSettings();
 
   const [elHeight, setElHeight] = useState<number>(
     Math.round(window.innerHeight / moduleCount),
   ); // State to hold the height of el
+
   // Update elHeight state on window resize
   useEffect(() => {
     if (!containerRef.current) return;
@@ -44,9 +44,7 @@ const RightSideBar = ({ solves }: Props) => {
 
   return (
     <div
-      className={clsx(
-        "h-full bg-base-200 hidden md:flex md:flex-col box-content w-64 justify-items-stretch items-stretch content-stretch",
-      )}
+      className="h-full bg-base-200 hidden md:flex md:flex-col box-content w-64"
       ref={containerRef}
     >
       {moduleIndices.map((i) => {
