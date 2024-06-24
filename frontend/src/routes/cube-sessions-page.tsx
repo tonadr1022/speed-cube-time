@@ -15,6 +15,7 @@ import SessionsTable from "../components/cube-session/SessionsTable.tsx";
 import { useQueryClient } from "@tanstack/react-query";
 import OnlineToggle from "../components/common/OnlineToggle.tsx";
 import SolvesOverTime from "../components/modules/SolvesOverTime.tsx";
+import StatsModule from "../components/modules/StatsModule.tsx";
 
 const SolveTableMemoized = React.memo(SolveTable);
 
@@ -57,15 +58,16 @@ export default function CubeSessionsPage() {
     <PageWrapper title="Sessions">
       <OnlineToggle />
       <button onClick={() => setAddSessionOpen(true)}>Create</button>
-      <div className="flex flex-col gap-2 h-full">
+      <div className="flex flex-col gap-2">
         <SessionsTable
           settings={settings}
           sessions={cubeSessions}
           setActiveSession={setActiveSession}
-          className="bg-base-200 h-1/2"
+          className="bg-base-200 h-80"
         />
-        <SolveTableMemoized solves={filteredSolves} className="h-1/4 p-2 " />
-        <SolvesOverTime solves={filteredSolves} />
+        <SolveTableMemoized solves={filteredSolves} className="h-80" />
+        <StatsModule solves={filteredSolves} className="h-80" />
+        <SolvesOverTime elHeight={320} solves={filteredSolves} />
       </div>
       <Modal open={addSessionOpen} onClose={() => setAddSessionOpen(false)}>
         <CreateCubeSessionForm onCompleted={() => setAddSessionOpen(false)} />

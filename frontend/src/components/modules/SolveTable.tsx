@@ -59,7 +59,7 @@ const SolveTable = ({ solves, className }: Props) => {
   return (
     <div
       className={clsx(
-        "bg-base-200 h-full overflow-y-auto w-full flex flex-col rounded-lg",
+        "bg-base-200 overflow-y-auto w-full flex flex-col rounded-lg",
         className,
       )}
     >

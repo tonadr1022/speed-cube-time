@@ -7,20 +7,24 @@
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
+
 html,
 body,
 #root {
   height: 100%;
-  overscroll-behavior: none;
-  overscroll-behavior-y: none;
 }
+/*#root {*/
+/*  height: 100%;*/
+/*  overscroll-behavior: none;*/
+/*  overscroll-behavior-y: none;*/
+/*}*/
 
 .btn {
   @apply transition-none;
 }
 
-@supports (-webkit-touch-callout: none) {
-  .h-screen {
-    height: -webkit-fill-available;
-  }
-}
+/*@supports (-webkit-touch-callout: none) {*/
+/*  .h-screen {*/
+/*    height: -webkit-fill-available;*/
+/*  }*/
+/*}*/

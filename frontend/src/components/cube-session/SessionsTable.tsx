@@ -18,7 +18,7 @@ const SessionsTable = ({
   setActiveSession,
 }: Props) => {
   const renderSessionRow = (i: number, key: number | string) => {
-    const active = settings.active_cube_session_id == sessions[i].id;
+    const active = settings.active_cube_session_id === sessions[i].id;
     return (
       <div
         className={clsx(
