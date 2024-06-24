@@ -1,4 +1,4 @@
-import { FaGear, FaListUl } from "react-icons/fa6";
+import { FaGear, FaTable } from "react-icons/fa6";
 import { RxTimer } from "react-icons/rx";
 import clsx from "clsx";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -9,7 +9,7 @@ const pathNames = [
     pathName: "/",
   },
   {
-    icon: <FaListUl />,
+    icon: <FaTable />,
     pathName: "/sessions",
   },
   {

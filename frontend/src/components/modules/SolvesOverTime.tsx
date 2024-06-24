@@ -1,34 +1,7 @@
 import { useMemo } from "react";
-import {
-  LineChart,
-  Line,
-  YAxis,
-  ResponsiveContainer,
-  Tooltip,
-  TooltipProps,
-} from "recharts";
-import {
-  ValueType,
-  NameType,
-} from "recharts/types/component/DefaultTooltipContent";
+import { LineChart, Line, YAxis, ResponsiveContainer } from "recharts";
 import NoSolves from "../common/NoSolves";
 import { Solve } from "../../types/types";
-
-const CustomTooltip = ({ payload }: TooltipProps<ValueType, NameType>) => {
-  if (!payload || !payload[0]) return null;
-  const solve: Solve = payload[0].payload;
-  return (
-    <div className="bg-primary bg-opacity-25 p-2 text-base rounded-lg">
-      <p className="">
-        Date: {new Date(solve.created_at).toLocaleDateString()}
-      </p>
-      <p>Time: {new Date(solve.created_at).toLocaleTimeString()}</p>
-      <p>Duration: {solve.duration}</p>
-      <p className="text-error">{solve.dnf && "DNF"}</p>
-      <p className="text-warning">{solve.plus_two && "Plus Two"}</p>
-    </div>
-  );
-};
 
 type Props = { solves: Solve[]; elHeight?: number | null };
 
@@ -40,7 +13,7 @@ const SolvesOverTime = ({ solves, elHeight }: Props) => {
       height={elHeight || "100%"}
       className="bg-base-300 rounded-lg"
     >
-      <LineChart data={reversed} className="-ml-4">
+      <LineChart data={reversed} className="-ml-4 pt-2">
         <Line
           isAnimationActive={false}
           dot={false}
@@ -55,9 +28,7 @@ const SolvesOverTime = ({ solves, elHeight }: Props) => {
           stroke={"#36d399"}
           axisLine={false}
           tickLine={false}
-          // tick={CustomYAxisTick}
         />
-        <Tooltip content={<CustomTooltip />} />
       </LineChart>
     </ResponsiveContainer>
   ) : (
