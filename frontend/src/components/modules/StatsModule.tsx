@@ -32,7 +32,7 @@ type Props = {
 const StatsModule = ({ solves }: Props) => {
   const stats = useMemo(() => calculateStats(solves), [solves]);
   return (
-    <div className="flex flex-row min-h-full max-h-full">
+    <div className="flex flex-row h-full">
       <div className="flex flex-col min-h-full w-full gap-1 px-0.5">
         <StatModuleStat name={"best"} value={stats.best} />
         <StatModuleStat name={"avg"} value={stats.currentAvg} />

@@ -15,6 +15,7 @@ import SessionsTable from "../components/cube-session/SessionsTable.tsx";
 import { useQueryClient } from "@tanstack/react-query";
 import OnlineToggle from "../components/common/OnlineToggle.tsx";
 import SolvesOverTime from "../components/modules/SolvesOverTime.tsx";
+import StatsModule from "../components/modules/StatsModule.tsx";
 
 const SolveTableMemoized = React.memo(SolveTable);
 
@@ -64,7 +65,8 @@ export default function CubeSessionsPage() {
           setActiveSession={setActiveSession}
           className="bg-base-200 h-1/2"
         />
-        <SolveTableMemoized solves={filteredSolves} className="h-1/4 p-2 " />
+        <SolveTableMemoized solves={filteredSolves} className="h-80" />
+        <StatsModule solves={filteredSolves} />
         <SolvesOverTime solves={filteredSolves} />
       </div>
       <Modal open={addSessionOpen} onClose={() => setAddSessionOpen(false)}>
