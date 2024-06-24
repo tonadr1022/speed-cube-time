@@ -68,9 +68,11 @@ const RightSideBar = ({ solves }: Props) => {
                 case "timeGraph":
                   return <SolvesOverTime elHeight={elHeight} solves={solves} />;
                 case "stats":
-                  return <StatsModule solves={solves} />;
+                  return <StatsModule solves={solves} className="h-full" />;
                 case "solves":
-                  return <SolveTableMemoized solves={solves} />;
+                  return (
+                    <SolveTableMemoized solves={solves} className="h-full" />
+                  );
                 case "cubeDisplay":
                   return <CubeDisplay elHeight={elHeight} />;
                 default:

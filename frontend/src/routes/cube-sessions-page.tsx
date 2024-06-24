@@ -58,16 +58,16 @@ export default function CubeSessionsPage() {
     <PageWrapper title="Sessions">
       <OnlineToggle />
       <button onClick={() => setAddSessionOpen(true)}>Create</button>
-      <div className="flex flex-col gap-2 h-full">
+      <div className="flex flex-col gap-2">
         <SessionsTable
           settings={settings}
           sessions={cubeSessions}
           setActiveSession={setActiveSession}
-          className="bg-base-200 h-1/2"
+          className="bg-base-200 h-80"
         />
         <SolveTableMemoized solves={filteredSolves} className="h-80" />
-        <StatsModule solves={filteredSolves} />
-        <SolvesOverTime solves={filteredSolves} />
+        <StatsModule solves={filteredSolves} className="h-80" />
+        <SolvesOverTime elHeight={320} solves={filteredSolves} />
       </div>
       <Modal open={addSessionOpen} onClose={() => setAddSessionOpen(false)}>
         <CreateCubeSessionForm onCompleted={() => setAddSessionOpen(false)} />

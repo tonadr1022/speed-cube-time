@@ -7,7 +7,7 @@ type Props = {
 
 const PageWrapper = ({ title, children }: Props) => {
   return (
-    <div className="h-full p-6 overflow-y-auto">
+    <div className="h-full p-8 overflow-y-auto">
       <h1 className="text-6xl font-semibold">{title}</h1>
       {children}
     </div>

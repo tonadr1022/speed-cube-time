@@ -27,12 +27,13 @@ const StatModuleStat = ({ name, value }: StatProps) => {
 
 type Props = {
   solves: Solve[];
+  className?: string;
 };
 
-const StatsModule = ({ solves }: Props) => {
+const StatsModule = ({ solves, className }: Props) => {
   const stats = useMemo(() => calculateStats(solves), [solves]);
   return (
-    <div className="flex flex-row h-full">
+    <div className={clsx("flex flex-row", className)}>
       <div className="flex flex-col min-h-full w-full gap-1 px-0.5">
         <StatModuleStat name={"best"} value={stats.best} />
         <StatModuleStat name={"avg"} value={stats.currentAvg} />
