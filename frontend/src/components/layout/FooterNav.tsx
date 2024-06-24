@@ -26,7 +26,7 @@ const FooterNav = ({ className }: Props) => {
   const nav = useNavigate();
 
   return (
-    <div className={clsx("flex flex-row w-full h-12  bg-base-300", className)}>
+    <div className={clsx("flex flex-row w-full h-12 bg-base-300", className)}>
       {pathNames.map((pageData) => (
         <div key={pageData.pathName} className="w-full">
           <button

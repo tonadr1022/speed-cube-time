@@ -25,7 +25,7 @@ type Props = {
 };
 const TopNavBar = ({ className }: Props) => {
   return (
-    <div className={clsx("navbar bg-base-200 min-h-8", className)}>
+    <div className={clsx("navbar bg-base-200 h-8 min-h-12 p-0", className)}>
       <div className="navbar-start">
         <div className="dropdown transition-none">
           <label tabIndex={0} className="btn btn-sm btn-ghost btn-circle">
